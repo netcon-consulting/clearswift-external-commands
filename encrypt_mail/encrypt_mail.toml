@@ -1,0 +1,5 @@
+keyword_encryption = "[encrypt]"
+
+password_length = 32
+
+password_punctuation = true
