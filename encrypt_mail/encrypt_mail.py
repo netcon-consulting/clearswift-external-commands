@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.1.0
+# encrypt_mail.py V1.2.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -62,7 +62,9 @@ def main(args):
 
     header_subject = email_parsed.get("Subject")
 
-    if not header_subject or not re.match(r"^{}".format(config.keyword_encryption), header_subject, re.I):
+    keyword_escaped = re.escape(config.keyword_encryption)
+
+    if not header_subject or not re.match(r"^{}".format(keyword_escaped), header_subject, re.I):
         return ReturnCode.ENCRYPTION_SKIPPED
 
     header_from = email_parsed.get("From")
@@ -102,8 +104,8 @@ def main(args):
         return ReturnCode.ERROR
 
     # remove encryption keyword from subject header
-    email_raw = re.sub(r"(\n|^)Subject: *{} *".format(config.keyword_encryption), r"\1Subject: ", email_raw, count=1, flags=re.I)
-    header_subject = re.sub(r"^{} *".format(config.keyword_encryption), "", header_subject, flags=re.I)
+    email_raw = re.sub(r"(\n|^)Subject: *{} *".format(keyword_escaped), r"\1Subject: ", email_raw, count=1, flags=re.I)
+    header_subject = re.sub(r"^{} *".format(keyword_escaped), "", header_subject, flags=re.I)
 
     password_characters = string.ascii_letters + string.digits
     if config.password_punctuation:
