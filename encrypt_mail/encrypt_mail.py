@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.2.0
+# encrypt_mail.py V1.3.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -80,8 +80,6 @@ def main(args):
         write_log(args.log, "Cannot find sender address")
 
         return ReturnCode.ERROR
-
-    address_sender = address_sender.group(1)
 
     address_recipient = dict()
 
