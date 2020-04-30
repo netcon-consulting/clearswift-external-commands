@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_string.py V1.0.0
+# check_string.py V1.1.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -36,7 +36,7 @@ def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
-        email_raw = read_file(args.email)
+        email_raw = read_file(args.email, ignore_errors=True)
     except Exception as ex:
         write_log(args.log, ex)
 
