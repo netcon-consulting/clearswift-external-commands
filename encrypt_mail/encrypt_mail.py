@@ -24,9 +24,9 @@ class ReturnCode(enum.IntEnum):
     """
     Return code.
 
-    0  - encryption skipped
-    1  - mail encrypted
-    99 - error
+    0   - encryption skipped
+    1   - mail encrypted
+    99  - error
     255 - unhandled exception
     """
     ENCRYPTION_SKIPPED = 0

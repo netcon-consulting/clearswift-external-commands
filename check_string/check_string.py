@@ -18,9 +18,9 @@ class ReturnCode(enum.IntEnum):
     """
     Return code.
 
-    0  - no string combination found
-    1  - string combination found
-    99 - error
+    0   - no string combination found
+    1   - string combination found
+    99  - error
     255 - unhandled exception
     """
     NOT_FOUND = 0
