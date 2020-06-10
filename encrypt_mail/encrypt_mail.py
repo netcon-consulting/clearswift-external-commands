@@ -108,7 +108,7 @@ def main(args):
     password_characters = string.ascii_letters + string.digits
     if config.password_punctuation:
         password_characters += string.punctuation
-    password = ''.join(random.choice(password_characters) for i in range(config.password_length))
+    password = "".join(random.choice(password_characters) for i in range(config.password_length))
 
     try:
         zip_archive = zip_encrypt({ ("email.eml", email_raw) }, password)
