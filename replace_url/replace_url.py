@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.0.0
+# replace_url.py V1.0.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -34,7 +34,7 @@ PARSER = ParserEmailLog
 
 CONFIG_PARAMETERS = ( "name_expression_list", "url_replacement" )
 
-PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)([\s>)\]}\"]|$)+", re.I)
+PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)([\s>)\]}\"]|$)+", re.IGNORECASE)
 
 def main(args):
     try:
@@ -73,12 +73,12 @@ def main(args):
     list_pattern = list()
 
     for expression in set_expression:
-        list_pattern.append(re.compile(expression, re.I))
+        list_pattern.append(re.compile(expression, re.IGNORECASE))
 
     expression_found = False
 
     if part_text:
-        content_text = part_text.get_payload(decode=True).decode("utf-8")
+        content_text = part_text.get_payload(decode=True).decode("utf-8", errors="ignore")
 
         for pattern in list_pattern:
             match = re.search(pattern, content_text)
@@ -89,7 +89,7 @@ def main(args):
                 break
 
     if part_html:
-        content_html = part_html.get_payload(decode=True).decode("utf-8")
+        content_html = part_html.get_payload(decode=True).decode("utf-8", errors="ignore")
 
         if not expression_found:
             text_html = html2text(content_html)
