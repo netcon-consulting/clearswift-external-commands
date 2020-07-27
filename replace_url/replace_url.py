@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.0.1
+# replace_url.py V1.0.2
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
 import sys
-import re
-from bs4 import BeautifulSoup
 
 #########################################################################################
 
+import re
+from bs4 import BeautifulSoup
 from netcon import ParserEmailLog, read_config, read_email, write_log, get_expression_list, html2text
 
 DESCRIPTION = "replaces URLs in text and html body if one of the keywords in CS expression list is found"
