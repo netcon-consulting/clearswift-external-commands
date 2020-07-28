@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.3.0
+# encrypt_mail.py V1.4.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -16,7 +16,7 @@ import string
 from email import message_from_string
 from email.message import EmailMessage
 import smtplib
-from netcon import ParserEmailLog, read_config, read_file, write_log, zip_encrypt, extract_email_addresses, extract_email_address
+from netcon import ParserArgs, read_config, read_file, write_log, zip_encrypt, extract_email_addresses, extract_email_address
 
 DESCRIPTION = "if keyword present in subject zip-encrypts email, sends it to recipients and generated password to sender"
 
@@ -34,8 +34,6 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-PARSER = ParserEmailLog
-
 CONFIG_PARAMETERS = ( "keyword_encryption", "password_length", "password_punctuation" )
 
 MESSAGE_RECIPIENT="You have received an encrypted email from {} attached to this email.\n\nThe password will be provided to you by the sender shortly.\n\nHave a nice day."
@@ -47,7 +45,7 @@ def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
-        email_raw = read_file(args.email)
+        email_raw = read_file(args.input)
     except Exception as ex:
         write_log(args.log, ex)
 
@@ -153,12 +151,15 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    if __file__.endswith(".py"):
-        config_default = __file__[:-3] + ".toml"
-    else:
-        config_default = __file__ + ".toml"
+    if CONFIG_PARAMETERS:
+        if __file__.endswith(".py"):
+            config_default = __file__[:-3] + ".toml"
+        else:
+            config_default = __file__ + ".toml"
 
-    parser = PARSER(DESCRIPTION, config_default)
+        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+    else:
+        parser = ParserArgs(DESCRIPTION)
 
     args = parser.parse_args()
 

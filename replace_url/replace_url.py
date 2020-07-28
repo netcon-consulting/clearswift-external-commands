@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.0.2
+# replace_url.py V1.1.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,7 +12,7 @@ import sys
 
 import re
 from bs4 import BeautifulSoup
-from netcon import ParserEmailLog, read_config, read_email, write_log, get_expression_list, html2text
+from netcon import ParserArgs, read_config, read_email, write_log, get_expression_list, html2text
 
 DESCRIPTION = "replaces URLs in text and html body if one of the keywords in CS expression list is found"
 
@@ -30,8 +30,6 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-PARSER = ParserEmailLog
-
 CONFIG_PARAMETERS = ( "name_expression_list", "url_replacement" )
 
 PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)([\s>)\]}\"]|$)+", re.IGNORECASE)
@@ -40,7 +38,7 @@ def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
-        email = read_email(args.email)
+        email = read_email(args.input)
     except Exception as ex:
         write_log(args.log, ex)
 
@@ -122,10 +120,10 @@ def main(args):
             part_html.set_payload(content_html)
 
         try:
-            with open(args.email, "w") as f:
+            with open(args.input, "w") as f:
                 f.write(email.as_string())
         except:
-            write_log(args.log, "Error writing '{}'".format(args.email))
+            write_log(args.log, "Error writing '{}'".format(args.input))
 
             return ReturnCode.ERROR
 
@@ -136,12 +134,15 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    if __file__.endswith(".py"):
-        config_default = __file__[:-3] + ".toml"
-    else:
-        config_default = __file__ + ".toml"
+    if CONFIG_PARAMETERS:
+        if __file__.endswith(".py"):
+            config_default = __file__[:-3] + ".toml"
+        else:
+            config_default = __file__ + ".toml"
 
-    parser = PARSER(DESCRIPTION, config_default)
+        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+    else:
+        parser = ParserArgs(DESCRIPTION)
 
     args = parser.parse_args()
 

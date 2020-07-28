@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_string.py V1.1.0
+# check_string.py V1.2.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,7 +10,7 @@ import sys
 
 #########################################################################################
 
-from netcon import ParserEmailLog, read_config, read_file, write_log
+from netcon import ParserArgs, read_config, read_file, write_log
 
 DESCRIPTION = "checks raw email text for combination of strings"
 
@@ -28,15 +28,13 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-PARSER = ParserEmailLog
-
 CONFIG_PARAMETERS = ( "search_strings", )
 
 def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
-        email_raw = read_file(args.email, ignore_errors=True)
+        email_raw = read_file(args.input, ignore_errors=True)
     except Exception as ex:
         write_log(args.log, ex)
 
@@ -54,12 +52,15 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    if __file__.endswith(".py"):
-        config_default = __file__[:-3] + ".toml"
-    else:
-        config_default = __file__ + ".toml"
+    if CONFIG_PARAMETERS:
+        if __file__.endswith(".py"):
+            config_default = __file__[:-3] + ".toml"
+        else:
+            config_default = __file__ + ".toml"
 
-    parser = PARSER(DESCRIPTION, config_default)
+        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+    else:
+        parser = ParserArgs(DESCRIPTION)
 
     args = parser.parse_args()
 
