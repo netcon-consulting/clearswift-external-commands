@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V1.0.0
+# tag_mail.py V1.0.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -120,7 +120,7 @@ def add_tag_subject(tag, header):
     :type header: str
     :rtype: str
     """
-    PATTERN_TAG = re.compile(r'^{} '.format(re.escape(tag)))
+    PATTERN_TAG = re.compile(r"^{} ".format(re.escape(tag)))
 
     header_strip = header.strip()
 
@@ -137,9 +137,7 @@ def remove_tag_subject(tag, header):
     :type header: str
     :rtype: str
     """
-    PATTERN_TAG = re.compile(r'^{} '.format(re.escape(tag)))
-
-    return re.sub(PATTERN_TAG, "", header)
+    return re.sub(r"{} ".format(re.escape(tag)), "", header)
 
 def main(args):
     try:
