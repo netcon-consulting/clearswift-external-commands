@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.1.0
+# replace_url.py V1.1.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -60,12 +60,12 @@ def main(args):
     part_html = None
 
     for part in email.walk():
-        if not part_text and part.get_content_type() == "text/plain":
+        if part_text is None and part.get_content_type() == "text/plain":
             part_text = part
-        elif not part_html and part.get_content_type() == "text/html":
+        elif part_html is None and part.get_content_type() == "text/html":
             part_html = part
 
-        if part_text and part_html:
+        if part_text is not None and part_html is not None:
             break
 
     list_pattern = list()
@@ -75,7 +75,7 @@ def main(args):
 
     expression_found = False
 
-    if part_text:
+    if part_text is not None:
         content_text = part_text.get_payload(decode=True).decode("utf-8", errors="ignore")
 
         for pattern in list_pattern:
@@ -86,7 +86,7 @@ def main(args):
 
                 break
 
-    if part_html:
+    if part_html is not None:
         content_html = part_html.get_payload(decode=True).decode("utf-8", errors="ignore")
 
         if not expression_found:
@@ -101,7 +101,7 @@ def main(args):
                     break
 
     if expression_found:
-        if part_text:
+        if part_text is not None:
             set_url = { url for (_, url, _, _) in re.findall(PATTERN_URL, content_text) }
 
             for url in set_url:
@@ -109,7 +109,7 @@ def main(args):
 
             part_text.set_payload(content_text)
 
-        if part_html:
+        if part_html is not None:
             soup = BeautifulSoup(content_html, features="html5lib")
 
             for a in soup.findAll("a", href=True):

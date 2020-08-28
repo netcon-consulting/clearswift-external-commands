@@ -1,3 +1,13 @@
-tag_address = "[EXT]"
+address_tag = "[EXT]"
 
-tag_subject = "[EXTERNAL]"
+subject_tag = "[EXTERNAL]"
+
+text_tag = "###### EXTERNAL SENDER ######\n"
+
+text_position = "top"
+
+html_tag = "###### EXTERNAL SENDER ######\n"
+
+html_position = "top"
+
+html_tag_id = "tag_mail_1"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V1.0.1
+# tag_mail.py V2.0.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,16 +12,17 @@ import sys
 
 import argparse
 import re
-from netcon import read_config, read_email, write_log, extract_addresses
+import bs4
+from netcon import read_config, read_email, write_log, end_escape, extract_addresses
 
-DESCRIPTION = "adds tags to from- and subject-header and removes tags from to/cc- and subject-header"
+DESCRIPTION = "adds/removes tags to/from address and subject headers and text and html bodies"
 
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
 
     0  - email not email_modified
-    1  - tag added
+    1  - tag(s) added
     99 - error
     255 - unhandled exception
     """
@@ -30,114 +31,7 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "tag_address", "tag_subject" )
-
-def add_tag_address(tag, header):
-    """
-    Add tag to from header.
-
-    :type tag: str
-    :type header: str
-    :rtype: str
-    """
-    PATTERN_TAG = re.compile(r'^"{} '.format(re.escape(tag)))
-
-    list_address = extract_addresses(header)
-
-    if not list_address:
-        raise Exception("Cannot find email address in header")
-
-    (prefix, email, suffix) = list_address[0]
-
-    if prefix.endswith("<") and suffix.startswith(">"):
-        prefix = prefix[:-1]
-        suffix = suffix[1:]
-
-    prefix = prefix.strip()
-    suffix = suffix.strip()
-
-    if re.search(PATTERN_TAG, prefix):
-        return header
-    else:
-        prefix_new = ""
-
-        for (index, char) in enumerate(prefix):
-            if char == '"':
-                if end_escape(prefix[:index]):
-                    prefix_new += char
-            else:
-                prefix_new += char
-
-        return '"{} {}"'.format(tag, prefix_new) + " <" + email + "> " + suffix
-
-def remove_tag_address(tag, header):
-    """
-    Remove tag from to/cc header.
-
-    :type tag: str
-    :type header: str
-    :rtype: str
-    """
-    PATTERN_TAG = re.compile(r'^"{} '.format(re.escape(tag)))
-
-    list_address = extract_addresses(header)
-
-    if not list_address:
-        raise Exception("Cannot find email address in header")
-
-    header = ""
-
-    for (prefix, email, suffix) in list_address:
-        if prefix.startswith(";") or prefix.startswith(","):
-            prefix = prefix[1:]
-
-        if prefix.endswith("<") and suffix.startswith(">"):
-            prefix = prefix[:-1]
-            suffix = suffix[1:]
-
-        prefix = prefix.strip()
-        suffix = suffix.strip()
-
-        prefix = re.sub(PATTERN_TAG, '"', prefix)
-
-        if prefix:
-            header += prefix + " "
-
-        header += "<" + email + ">"
-
-        if suffix:
-            header += " " + suffix
-
-        header += "; "
-
-    return header[:-2]
-
-def add_tag_subject(tag, header):
-    """
-    Add tag to subject header.
-
-    :type tag: str
-    :type header: str
-    :rtype: str
-    """
-    PATTERN_TAG = re.compile(r"^{} ".format(re.escape(tag)))
-
-    header_strip = header.strip()
-
-    if re.search(PATTERN_TAG, header_strip):
-        return header
-    else:
-        return "{} {}".format(tag, header_strip)
-
-def remove_tag_subject(tag, header):
-    """
-    Remove tag from subject header.
-
-    :type tag: str
-    :type header: str
-    :rtype: str
-    """
-    return re.sub(r"{} ".format(re.escape(tag)), "", header)
+CONFIG_PARAMETERS = ( "address_tag", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
 
 def main(args):
     try:
@@ -149,59 +43,199 @@ def main(args):
 
         return ReturnCode.ERROR
 
+    if config.text_tag:
+        part_text = None
+
+        for part in email.walk():
+            if part.get_content_type() == "text/plain":
+                part_text = part
+                content_text = part_text.get_payload(decode=True).decode("utf-8", errors="ignore")
+
+                break
+
+    if config.html_tag:
+        part_html = None
+
+        for part in email.walk():
+            if part.get_content_type() == "text/html":
+                part_html = part
+                content_html = part_html.get_payload(decode=True).decode("utf-8", errors="ignore")
+                soup = bs4.BeautifulSoup(content_html, features="html5lib")
+
+                break
+
     email_modified = False
 
     if args.remove:
-        if config.tag_address:
+        if config.address_tag:
+            # remove address tag
+
+            pattern = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
+
             for header_keyword in [ "To", "Cc" ]:
-                list_header = email.get_all(header_keyword)
+                header = "; ".join(email.get_all(header_keyword)).replace("\n", " ")
 
-                if list_header:
-                    header_joined = ""
-                    header_changed = False
+                list_address = extract_addresses(header)
 
-                    for header_org in list_header:
-                        header_new = remove_tag_address(config.tag_address, header_org)
+                if list_address:
+                    header = ""
+                    header_modified = False
 
-                        if header_new != header_org:
-                            header_changed = True
+                    for (prefix, address, suffix) in list_address:
+                        if prefix.startswith(";") or prefix.startswith(","):
+                            prefix = prefix[1:]
 
-                        header_joined += header_new + "; "
+                        if prefix.endswith("<") and suffix.startswith(">"):
+                            prefix = prefix[:-1]
+                            suffix = suffix[1:]
 
-                    if header_changed:
-                        email_modified = True
+                        prefix = prefix.strip()
+                        suffix = suffix.strip()
+
+                        match = re.search(pattern, prefix)
+
+                        if match:
+                            prefix = '"' + prefix[len(config.address_tag) + 2:]
+
+                            header_modified = True
+
+                        if prefix:
+                            header += prefix + " "
+
+                        header += "<" + address + ">"
+
+                        if suffix:
+                            header += " " + suffix
+
+                        header += "; "
+
+                    if header_modified:
                         email.__delitem__(header_keyword)
-                        email[header_keyword] = header_joined[:-2]
+                        email[header_keyword] = header[:-2]
 
-        if config.tag_subject and "Subject" in email:
-            header_org = email["Subject"]
+                        email_modified = True
 
-            header_new = remove_tag_subject(config.tag_subject, header_org)
+        if config.subject_tag and "Subject" in email:
+            # remove subject tag
 
-            if header_new != header_org:
-                email_modified = True
+            header = email["Subject"].strip().replace("\n", " ")
+
+            match = re.search(r"^{} ".format(re.escape(config.subject_tag)), header)
+
+            if match:
                 email.__delitem__("Subject")
-                email["Subject"] = header_new
+                email["Subject"] = header[len(config.subject_tag) + 1:]
+
+                email_modified = True
+
+        if config.text_tag and part_text is not None and config.text_tag in content_text:
+            # remove text body tag
+
+            part_text.set_payload(content_text.replace(config.text_tag, ""))
+
+            email_modified = True
+
+        if config.html_tag and part_html is not None:
+            # remove html body tag
+
+            list_tag = soup.find_all("div", id=config.html_tag_id)
+
+            if list_tag:
+                for tag in list_tag:
+                    tag.decompose()
+
+                part_html.set_payload(str(soup))
+
+                email_modified = True
     else:
-        if config.tag_address and "From" in email:
-            header_org = email["From"]
+        if config.address_tag and "From" in email:
+            # add address tag
 
-            header_new = add_tag_address(config.tag_address, header_org)
+            list_address = extract_addresses(email["From"].replace("\n", " "))
 
-            if header_new != header_org:
-                email_modified = True
-                email.__delitem__("From")
-                email["From"] = header_new
+            if list_address:
+                (prefix, address, suffix) = list_address[0]
 
-        if config.tag_subject and "Subject" in email:
-            header_org = email["Subject"]
+                if prefix.endswith("<") and suffix.startswith(">"):
+                    prefix = prefix[:-1]
+                    suffix = suffix[1:]
 
-            header_new = add_tag_subject(config.tag_subject, header_org)
+                prefix = prefix.strip()
+                suffix = suffix.strip()
 
-            if header_new != header_org:
-                email_modified = True
+                if not re.search(r'^"{} '.format(re.escape(config.address_tag)), prefix):
+                    prefix_new = ""
+
+                    for (index, char) in enumerate(prefix):
+                        if char == '"':
+                            if end_escape(prefix[:index]):
+                                prefix_new += char
+                        else:
+                            prefix_new += char
+
+                    email.__delitem__("From")
+                    email["From"] = '"{} {}"'.format(config.address_tag, prefix_new) + " <" + address + "> " + suffix
+
+                    email_modified = True
+
+        if config.subject_tag and "Subject" in email:
+            # add subject tag
+
+            header = email["Subject"].strip().replace("\n", " ")
+
+            if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
+                header = "{} {}".format(config.subject_tag, header)
+
                 email.__delitem__("Subject")
-                email["Subject"] = header_new
+                email["Subject"] = header
+
+                email_modified = True
+
+        if config.text_tag and part_text is not None and config.text_tag not in content_text:
+            # add text body tag
+
+            position_lower = config.text_position.lower()
+
+            if position_lower == "top":
+                content_text = config.text_tag + content_text
+            elif position_lower == "bottom":
+                content_text += config.text_tag
+            else:
+                write_log(args.log, "Invalid tag position '{}'".format(config.text_position))
+
+                return ReturnCode.ERROR
+
+            part_text.set_payload(content_text)
+
+            email_modified = True
+
+        if config.html_tag and part_html is not None and soup.find("div", id=config.html_tag_id) is None:
+            # add html body tag
+
+            position_lower = config.html_position.lower()
+
+            if position_lower == "top":
+                match = re.search(r"<body[^>]*>", content_html)
+
+                if match:
+                    index = match.end(0)
+                else:
+                    index = -1
+            elif position_lower == "bottom":
+                index = content_html.find("</body>")
+            else:
+                write_log(args.log, "Invalid tag position '{}'".format(config.html_position))
+
+                return ReturnCode.ERROR
+
+            if index <= 0:
+                write_log(args.log, "Cannot find index of tag position")
+
+                return ReturnCode.ERROR
+
+            part_html.set_payload(content_html[:index] + '<div id="{}">{}</div>'.format(config.html_tag_id, config.html_tag) + content_html[index:])
+
+            email_modified = True
 
     if email_modified:
         try:
