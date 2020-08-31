@@ -1,5 +1,7 @@
 address_tag = "[EXT]"
 
+name_domain_list = "My Company"
+
 subject_tag = "[EXTERNAL]"
 
 text_tag = "###### EXTERNAL SENDER ######\n"

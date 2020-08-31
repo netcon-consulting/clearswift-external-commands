@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.0.0
+# tag_mail.py V2.1.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -13,7 +13,7 @@ import sys
 import argparse
 import re
 import bs4
-from netcon import read_config, read_email, write_log, end_escape, extract_addresses
+from netcon import read_config, read_email, write_log, end_escape, extract_addresses, get_address_list
 
 DESCRIPTION = "adds/removes tags to/from address and subject headers and text and html bodies"
 
@@ -31,7 +31,7 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "address_tag", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
+CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
 
 def main(args):
     try:
@@ -173,10 +173,85 @@ def main(args):
                         else:
                             prefix_new += char
 
+                    if prefix_new:
+                        prefix = '"{} {}"'.format(config.address_tag, prefix_new)
+                    else:
+                        prefix = '"{} {}"'.format(config.address_tag, address)
+
                     email.__delitem__("From")
-                    email["From"] = '"{} {}"'.format(config.address_tag, prefix_new) + " <" + address + "> " + suffix
+                    email["From"] = prefix + " <" + address + "> " + suffix
 
                     email_modified = True
+
+            if config.name_domain_list:
+                # add address tag to external addresses in To/Cc header
+                try:
+                    set_address = get_address_list(config.name_domain_list)
+                except Exception as ex:
+                    write_log(args.log, ex)
+
+                    return ReturnCode.ERROR
+
+                pattern_domain = re.compile(r"^\S+@(\S+)")
+
+                set_domain = { match.group(1) for match in [ re.search(pattern_domain, address) for address in set_address ] if match is not None }
+
+                pattern_tag = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
+
+                for header_keyword in [ "To", "Cc" ]:
+                    header = "; ".join(email.get_all(header_keyword)).replace("\n", " ")
+
+                    list_address = extract_addresses(header)
+
+                    if list_address:
+                        header = ""
+                        header_modified = False
+
+                        for (prefix, address, suffix) in list_address:
+                            if prefix.startswith(";") or prefix.startswith(","):
+                                prefix = prefix[1:]
+
+                            if prefix.endswith("<") and suffix.startswith(">"):
+                                prefix = prefix[:-1]
+                                suffix = suffix[1:]
+
+                            prefix = prefix.strip()
+                            suffix = suffix.strip()
+
+                            match = re.search(pattern_domain, address)
+
+                            if match and match.group(1) not in set_domain and not re.search(pattern_tag, prefix):
+                                prefix_new = ""
+
+                                for (index, char) in enumerate(prefix):
+                                    if char == '"':
+                                        if end_escape(prefix[:index]):
+                                            prefix_new += char
+                                    else:
+                                        prefix_new += char
+
+                                if prefix_new:
+                                    prefix = '"{} {}"'.format(config.address_tag, prefix_new)
+                                else:
+                                    prefix = '"{} {}"'.format(config.address_tag, address)
+
+                                header_modified = True
+
+                            if prefix:
+                                header += prefix + " "
+
+                            header += "<" + address + ">"
+
+                            if suffix:
+                                header += " " + suffix
+
+                            header += "; "
+
+                        if header_modified:
+                            email.__delitem__(header_keyword)
+                            email[header_keyword] = header[:-2]
+
+                            email_modified = True
 
         if config.subject_tag and "Subject" in email:
             # add subject tag
