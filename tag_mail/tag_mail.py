@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.1.0
+# tag_mail.py V2.1.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -73,47 +73,50 @@ def main(args):
             pattern = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
 
             for header_keyword in [ "To", "Cc" ]:
-                header = "; ".join(email.get_all(header_keyword)).replace("\n", " ")
+                list_header = email.get_all(header_keyword)
 
-                list_address = extract_addresses(header)
+                if list_header:
+                    header = "; ".join(list_header).replace("\n", " ")
 
-                if list_address:
-                    header = ""
-                    header_modified = False
+                    list_address = extract_addresses(header)
 
-                    for (prefix, address, suffix) in list_address:
-                        if prefix.startswith(";") or prefix.startswith(","):
-                            prefix = prefix[1:]
+                    if list_address:
+                        header = ""
+                        header_modified = False
 
-                        if prefix.endswith("<") and suffix.startswith(">"):
-                            prefix = prefix[:-1]
-                            suffix = suffix[1:]
+                        for (prefix, address, suffix) in list_address:
+                            if prefix.startswith(";") or prefix.startswith(","):
+                                prefix = prefix[1:]
 
-                        prefix = prefix.strip()
-                        suffix = suffix.strip()
+                            if prefix.endswith("<") and suffix.startswith(">"):
+                                prefix = prefix[:-1]
+                                suffix = suffix[1:]
 
-                        match = re.search(pattern, prefix)
+                            prefix = prefix.strip()
+                            suffix = suffix.strip()
 
-                        if match:
-                            prefix = '"' + prefix[len(config.address_tag) + 2:]
+                            match = re.search(pattern, prefix)
 
-                            header_modified = True
+                            if match:
+                                prefix = '"' + prefix[len(config.address_tag) + 2:]
 
-                        if prefix:
-                            header += prefix + " "
+                                header_modified = True
 
-                        header += "<" + address + ">"
+                            if prefix:
+                                header += prefix + " "
 
-                        if suffix:
-                            header += " " + suffix
+                            header += "<" + address + ">"
 
-                        header += "; "
+                            if suffix:
+                                header += " " + suffix
 
-                    if header_modified:
-                        email.__delitem__(header_keyword)
-                        email[header_keyword] = header[:-2]
+                            header += "; "
 
-                        email_modified = True
+                        if header_modified:
+                            email.__delitem__(header_keyword)
+                            email[header_keyword] = header[:-2]
+
+                            email_modified = True
 
         if config.subject_tag and "Subject" in email:
             # remove subject tag
@@ -194,64 +197,67 @@ def main(args):
 
                 pattern_domain = re.compile(r"^\S+@(\S+)")
 
-                set_domain = { match.group(1) for match in [ re.search(pattern_domain, address) for address in set_address ] if match is not None }
+                set_domain = { match.group(1).lower() for match in [ re.search(pattern_domain, address) for address in set_address ] if match is not None }
 
                 pattern_tag = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
 
                 for header_keyword in [ "To", "Cc" ]:
-                    header = "; ".join(email.get_all(header_keyword)).replace("\n", " ")
+                    list_header = email.get_all(header_keyword)
 
-                    list_address = extract_addresses(header)
+                    if list_header:
+                        header = "; ".join(list_header).replace("\n", " ")
 
-                    if list_address:
-                        header = ""
-                        header_modified = False
+                        list_address = extract_addresses(header)
 
-                        for (prefix, address, suffix) in list_address:
-                            if prefix.startswith(";") or prefix.startswith(","):
-                                prefix = prefix[1:]
+                        if list_address:
+                            header = ""
+                            header_modified = False
 
-                            if prefix.endswith("<") and suffix.startswith(">"):
-                                prefix = prefix[:-1]
-                                suffix = suffix[1:]
+                            for (prefix, address, suffix) in list_address:
+                                if prefix.startswith(";") or prefix.startswith(","):
+                                    prefix = prefix[1:]
 
-                            prefix = prefix.strip()
-                            suffix = suffix.strip()
+                                if prefix.endswith("<") and suffix.startswith(">"):
+                                    prefix = prefix[:-1]
+                                    suffix = suffix[1:]
 
-                            match = re.search(pattern_domain, address)
+                                prefix = prefix.strip()
+                                suffix = suffix.strip()
 
-                            if match and match.group(1) not in set_domain and not re.search(pattern_tag, prefix):
-                                prefix_new = ""
+                                match = re.search(pattern_domain, address)
 
-                                for (index, char) in enumerate(prefix):
-                                    if char == '"':
-                                        if end_escape(prefix[:index]):
+                                if match and match.group(1).lower() not in set_domain and not re.search(pattern_tag, prefix):
+                                    prefix_new = ""
+
+                                    for (index, char) in enumerate(prefix):
+                                        if char == '"':
+                                            if end_escape(prefix[:index]):
+                                                prefix_new += char
+                                        else:
                                             prefix_new += char
+
+                                    if prefix_new:
+                                        prefix = '"{} {}"'.format(config.address_tag, prefix_new)
                                     else:
-                                        prefix_new += char
+                                        prefix = '"{} {}"'.format(config.address_tag, address)
 
-                                if prefix_new:
-                                    prefix = '"{} {}"'.format(config.address_tag, prefix_new)
-                                else:
-                                    prefix = '"{} {}"'.format(config.address_tag, address)
+                                    header_modified = True
 
-                                header_modified = True
+                                if prefix:
+                                    header += prefix + " "
 
-                            if prefix:
-                                header += prefix + " "
+                                header += "<" + address + ">"
 
-                            header += "<" + address + ">"
+                                if suffix:
+                                    header += " " + suffix
 
-                            if suffix:
-                                header += " " + suffix
+                                header += "; "
 
-                            header += "; "
+                            if header_modified:
+                                email.__delitem__(header_keyword)
+                                email[header_keyword] = header[:-2]
 
-                        if header_modified:
-                            email.__delitem__(header_keyword)
-                            email[header_keyword] = header[:-2]
-
-                            email_modified = True
+                                email_modified = True
 
         if config.subject_tag and "Subject" in email:
             # add subject tag
