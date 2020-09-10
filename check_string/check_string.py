@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_string.py V1.2.0
+# check_string.py V1.2.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,7 +10,7 @@ import sys
 
 #########################################################################################
 
-from netcon import ParserArgs, read_config, read_file, write_log
+from netcon import ParserArgs, read_config, read_email, write_log
 
 DESCRIPTION = "checks raw email text for combination of strings"
 
@@ -34,15 +34,17 @@ def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
-        email_raw = read_file(args.input, ignore_errors=True)
+        email = read_email(args.input)
     except Exception as ex:
         write_log(args.log, ex)
 
         return ReturnCode.ERROR
 
+    email = email.as_string()
+
     for list_string in config.search_strings:
         for string in list_string:
-            if email_raw.find(string) == -1:
+            if email.find(string) == -1:
                 break
         else:
             return ReturnCode.STRING_FOUND

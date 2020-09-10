@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.4.0
+# encrypt_mail.py V1.4.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -13,10 +13,9 @@ import sys
 import re
 import random
 import string
-from email import message_from_string
 from email.message import EmailMessage
 import smtplib
-from netcon import ParserArgs, read_config, read_file, write_log, zip_encrypt, extract_email_addresses, extract_email_address
+from netcon import ParserArgs, read_config, read_email, write_log, zip_encrypt, extract_email_addresses, extract_email_address
 
 DESCRIPTION = "if keyword present in subject zip-encrypts email, sends it to recipients and generated password to sender"
 
@@ -45,27 +44,20 @@ def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
-        email_raw = read_file(args.input)
+        email = read_email(args.input)
     except Exception as ex:
         write_log(args.log, ex)
 
         return ReturnCode.ERROR
 
-    try:
-        email_parsed = message_from_string(email_raw)
-    except:
-        write_log(args.log, "Cannot parse email")
-
-        return ReturnCode.ERROR
-
-    header_subject = email_parsed.get("Subject")
+    header_subject = email.get("Subject")
 
     keyword_escaped = re.escape(config.keyword_encryption)
 
     if not header_subject or not re.match(r"^{}".format(keyword_escaped), header_subject, re.I):
         return ReturnCode.ENCRYPTION_SKIPPED
 
-    header_from = email_parsed.get("From")
+    header_from = email.get("From")
 
     if not header_from:
         write_log(args.log, "Header from is empty")
@@ -85,7 +77,7 @@ def main(args):
     for header_keyword in [ "To", "Cc" ]:
         address_recipient[header_keyword] = set()
 
-        list_header = email_parsed.get_all(header_keyword)
+        list_header = email.get_all(header_keyword)
 
         if list_header:
             for header in list_header:
@@ -100,7 +92,7 @@ def main(args):
         return ReturnCode.ERROR
 
     # remove encryption keyword from subject header
-    email_raw = re.sub(r"(\n|^)Subject: *{} *".format(keyword_escaped), r"\1Subject: ", email_raw, count=1, flags=re.I)
+    email = re.sub(r"(\n|^)Subject: *{} *".format(keyword_escaped), r"\1Subject: ", email.as_string(), count=1, flags=re.I)
     header_subject = re.sub(r"^{} *".format(keyword_escaped), "", header_subject, flags=re.I)
 
     password_characters = string.ascii_letters + string.digits
@@ -109,7 +101,7 @@ def main(args):
     password = "".join(random.choice(password_characters) for i in range(config.password_length))
 
     try:
-        zip_archive = zip_encrypt({ ("email.eml", email_raw) }, password)
+        zip_archive = zip_encrypt({ ("email.eml", email) }, password)
     except:
         write_log(args.log, "Error zip-encrypting email")
 
