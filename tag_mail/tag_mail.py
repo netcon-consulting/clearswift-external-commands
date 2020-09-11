@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.1.1
+# tag_mail.py V2.1.2
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -123,11 +123,11 @@ def main(args):
 
             header = email["Subject"].strip().replace("\n", " ")
 
-            match = re.search(r"^{} ".format(re.escape(config.subject_tag)), header)
+            match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
             if match:
                 email.__delitem__("Subject")
-                email["Subject"] = header[len(config.subject_tag) + 1:]
+                email["Subject"] = header[:match.start()] + header[match.end():]
 
                 email_modified = True
 
