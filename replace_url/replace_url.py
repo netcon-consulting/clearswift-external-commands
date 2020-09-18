@@ -20,9 +20,9 @@ class ReturnCode(enum.IntEnum):
     """
     Return codes.
 
-    0  - email not modified
-    1  - one or more URL replaced
-    99 - error
+    0   - email not modified
+    1   - one or more URL replaced
+    99  - error
     255 - unhandled exception
     """
     NOT_MODIFIED = 0

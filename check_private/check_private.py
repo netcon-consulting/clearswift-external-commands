@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_rcptlimit.py V1.2.0
+# check_private.py V1.0.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,25 +10,27 @@ import sys
 
 #########################################################################################
 
-from netcon import ParserArgs, read_config, read_email, write_log, extract_email_addresses
+from netcon import ParserArgs, read_config, read_email, write_log
 
-DESCRIPTION = "checks number of recipients (in to and cc headers) against limit"
+DESCRIPTION = "checks sensitivity header for private keyword and that private mails not exceed max_size and have no attachments"
 
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
 
-    0   - number of recipients within limit
-    1   - number of recipients exceeds limit
+    0   - private mail
+    1   - not private mail
+    2   - invalid private mail (size > max_size or has attachments)
     99  - error
     255 - unhandled exception
     """
-    LIMIT_OK = 0
-    LIMIT_EXCEEDED = 1
+    PRIVATE = 0
+    NOT_PRIVATE = 1
+    INVALID = 2
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "recipient_limit", )
+CONFIG_PARAMETERS = ( "max_size_kb", )
 
 def main(args):
     try:
@@ -40,23 +42,27 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    num_recipients = 0
+    header_sensitivity = email.get("sensitivity")
 
-    # count number of email addresses in To and Cc headers
-    for header_keyword in [ "To", "Cc" ]:
-        list_header = email.get_all(header_keyword)
+    if header_sensitivity and header_sensitivity == 'private':
+        if len(email.as_string()) > config.max_size_kb * 1024:
+            write_log(args.log, "Mail exceeds max size")
 
-        if list_header:
-            for header in list_header:
-                email_addresses = extract_email_addresses(header)
+            return ReturnCode.INVALID
 
-                if email_addresses:
-                    num_recipients += len(email_addresses)
+        for part in email.walk():
+            content_disposition = part.get_params(header="Content-Disposition")
 
-    if num_recipients > config.recipient_limit:
-        return ReturnCode.LIMIT_EXCEEDED
+            if content_disposition:
+                for (key, _) in content_disposition:
+                    if key == 'attachment':
+                        write_log(args.log, "Mail has attachment")
 
-    return ReturnCode.LIMIT_OK
+                        return ReturnCode.INVALID
+
+        return ReturnCode.PRIVATE
+
+    return ReturnCode.NOT_PRIVATE
 
 #########################################################################################
 

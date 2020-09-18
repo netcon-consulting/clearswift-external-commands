@@ -20,9 +20,9 @@ class ReturnCode(enum.IntEnum):
     """
     Return codes.
 
-    0  - sender IP not in defined internal networks or sender domain not on defined address list
-    1  - sender IP in defined internal networks and sender domain on defined address list
-    99 - error
+    0   - sender IP not in defined internal networks or sender domain not on defined address list
+    1   - sender IP in defined internal networks and sender domain on defined address list
+    99  - error
     255 - unhandled exception
     """
     SENDER_EXTERNAL = 0

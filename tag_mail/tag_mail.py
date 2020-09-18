@@ -21,9 +21,9 @@ class ReturnCode(enum.IntEnum):
     """
     Return codes.
 
-    0  - email not email_modified
-    1  - tag(s) added
-    99 - error
+    0   - email not modified
+    1   - tag(s) added
+    99  - error
     255 - unhandled exception
     """
     NOT_MODIFIED = 0

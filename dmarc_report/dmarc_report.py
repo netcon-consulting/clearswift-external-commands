@@ -21,8 +21,8 @@ class ReturnCode(enum.IntEnum):
     """
     Return codes.
 
-    0  - DMARC report successfully parsed
-    99 - error
+    0   - DMARC report successfully parsed
+    99  - error
     255 - unhandled exception
     """
     SUCCESS = 0
