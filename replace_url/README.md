@@ -1,4 +1,4 @@
-replace_url.py V1.1.0
+replace_url.py V1.1.2
 =====================
 
 Replace URLs in text and html body if one of the keywords is found.

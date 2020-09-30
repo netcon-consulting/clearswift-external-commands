@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.1.2
+# tag_mail.py V2.1.3
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -320,8 +320,8 @@ def main(args):
 
     if email_modified:
         try:
-            with open(args.input, "w") as f:
-                f.write(email.as_string())
+            with open(args.input, "wb") as f:
+                f.write(email.as_bytes())
         except:
             write_log(args.log, "Error writing '{}'".format(args.input))
 

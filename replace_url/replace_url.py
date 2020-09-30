@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.1.1
+# replace_url.py V1.1.2
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -120,8 +120,8 @@ def main(args):
             part_html.set_payload(content_html)
 
         try:
-            with open(args.input, "w") as f:
-                f.write(email.as_string())
+            with open(args.input, "wb") as f:
+                f.write(email.as_bytes())
         except:
             write_log(args.log, "Error writing '{}'".format(args.input))
 
