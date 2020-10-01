@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.4.1
+# encrypt_mail.py V1.4.2
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -50,14 +50,22 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    header_subject = email.get("Subject")
+    if "Subject" not in email:
+        return ReturnCode.ENCRYPTION_SKIPPED
+
+    header_subject = str(email.get("Subject"))
 
     keyword_escaped = re.escape(config.keyword_encryption)
 
-    if not header_subject or not re.match(r"^{}".format(keyword_escaped), header_subject, re.I):
+    if not re.match(r"^{}".format(keyword_escaped), header_subject, re.I):
         return ReturnCode.ENCRYPTION_SKIPPED
 
-    header_from = email.get("From")
+    if "From" not in email:
+        write_log(args.log, "Header from does not exist")
+
+        return ReturnCode.ERROR
+
+    header_from = str(email.get("From"))
 
     if not header_from:
         write_log(args.log, "Header from is empty")
@@ -77,11 +85,9 @@ def main(args):
     for header_keyword in [ "To", "Cc" ]:
         address_recipient[header_keyword] = set()
 
-        list_header = email.get_all(header_keyword)
-
-        if list_header:
-            for header in list_header:
-                email_addresses = extract_email_addresses(header)
+        if header_keyword in email:
+            for header in email.get_all(header_keyword):
+                email_addresses = extract_email_addresses(str(header))
 
                 if email_addresses:
                     address_recipient[header_keyword] |= email_addresses

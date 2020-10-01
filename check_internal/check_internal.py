@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_internal.py V1.2.0
+# check_internal.py V1.2.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -42,7 +42,12 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    header_received = email.get("Received")
+    if "Received" not in email:
+        write_log(args.log, "Header received does not exist")
+
+        return ReturnCode.ERROR
+
+    header_received = str(email.get("Received"))
 
     if not header_received:
         write_log(args.log, "Header received is empty")
@@ -78,7 +83,12 @@ def main(args):
     else:
         return ReturnCode.SENDER_EXTERNAL
 
-    header_from = email.get("From")
+    if "From" not in email:
+        write_log(args.log, "Header does not exist")
+
+        return ReturnCode.ERROR
+
+    header_from = str(email.get("From"))
 
     if not header_from:
         write_log(args.log, "Header from is empty")

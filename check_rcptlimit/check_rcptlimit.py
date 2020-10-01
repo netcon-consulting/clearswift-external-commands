@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_rcptlimit.py V1.2.0
+# check_rcptlimit.py V1.2.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -44,11 +44,9 @@ def main(args):
 
     # count number of email addresses in To and Cc headers
     for header_keyword in [ "To", "Cc" ]:
-        list_header = email.get_all(header_keyword)
-
-        if list_header:
-            for header in list_header:
-                email_addresses = extract_email_addresses(header)
+        if header_keyword in email:
+            for header in email.get_all(header_keyword):
+                email_addresses = extract_email_addresses(str(header))
 
                 if email_addresses:
                     num_recipients += len(email_addresses)

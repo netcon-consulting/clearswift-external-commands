@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_private.py V1.0.0
+# check_private.py V1.0.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -42,9 +42,7 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    header_sensitivity = email.get("sensitivity")
-
-    if header_sensitivity and header_sensitivity == 'private':
+    if "Sensitivity" in email and str(email.get("Sensitivity")) == "private":
         if len(email.as_string()) > config.max_size_kb * 1024:
             write_log(args.log, "Mail exceeds max size")
 
@@ -55,7 +53,7 @@ def main(args):
 
             if content_disposition:
                 for (key, _) in content_disposition:
-                    if key == 'attachment':
+                    if key == "attachment":
                         write_log(args.log, "Mail has attachment")
 
                         return ReturnCode.INVALID

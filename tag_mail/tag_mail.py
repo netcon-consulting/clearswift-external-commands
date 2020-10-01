@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.1.3
+# tag_mail.py V2.1.4
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -73,10 +73,8 @@ def main(args):
             pattern = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
 
             for header_keyword in [ "To", "Cc" ]:
-                list_header = email.get_all(header_keyword)
-
-                if list_header:
-                    header = "; ".join(list_header).replace("\n", " ")
+                if header_keyword in email:
+                    header = "; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", " ")
 
                     list_address = extract_addresses(header)
 
@@ -113,7 +111,7 @@ def main(args):
                             header += "; "
 
                         if header_modified:
-                            email.__delitem__(header_keyword)
+                            del email[header_keyword]
                             email[header_keyword] = header[:-2]
 
                             email_modified = True
@@ -121,12 +119,12 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # remove subject tag
 
-            header = email["Subject"].strip().replace("\n", " ")
+            header = str(email.get("Subject")).strip().replace("\n", " ")
 
             match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
             if match:
-                email.__delitem__("Subject")
+                del email["Subject"]
                 email["Subject"] = header[:match.start()] + header[match.end():]
 
                 email_modified = True
@@ -154,7 +152,7 @@ def main(args):
         if config.address_tag and "From" in email:
             # add address tag
 
-            list_address = extract_addresses(email["From"].replace("\n", " "))
+            list_address = extract_addresses(str(email.get("From")).replace("\n", " "))
 
             if list_address:
                 (prefix, address, suffix) = list_address[0]
@@ -181,7 +179,7 @@ def main(args):
                     else:
                         prefix = '"{} {}"'.format(config.address_tag, address)
 
-                    email.__delitem__("From")
+                    del email["From"]
                     email["From"] = prefix + " <" + address + "> " + suffix
 
                     email_modified = True
@@ -202,10 +200,8 @@ def main(args):
                 pattern_tag = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
 
                 for header_keyword in [ "To", "Cc" ]:
-                    list_header = email.get_all(header_keyword)
-
-                    if list_header:
-                        header = "; ".join(list_header).replace("\n", " ")
+                    if header_keyword in email:
+                        header = "; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", " ")
 
                         list_address = extract_addresses(header)
 
@@ -254,7 +250,7 @@ def main(args):
                                 header += "; "
 
                             if header_modified:
-                                email.__delitem__(header_keyword)
+                                del email[header_keyword]
                                 email[header_keyword] = header[:-2]
 
                                 email_modified = True
@@ -262,12 +258,12 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # add subject tag
 
-            header = email["Subject"].strip().replace("\n", " ")
+            header = str(email.get("Subject")).strip().replace("\n", " ")
 
             if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
                 header = "{} {}".format(config.subject_tag, header)
 
-                email.__delitem__("Subject")
+                del email["Subject"]
                 email["Subject"] = header
 
                 email_modified = True
