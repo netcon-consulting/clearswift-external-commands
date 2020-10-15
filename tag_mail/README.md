@@ -1,4 +1,4 @@
-tag_mail.py V2.1.4
+tag_mail.py V2.1.5
 ==================
 
 Adds/removes tags to/from address and subject headers and text and html bodies.

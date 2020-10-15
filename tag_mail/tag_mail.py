@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.1.4
+# tag_mail.py V2.1.5
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -13,7 +13,8 @@ import sys
 import argparse
 import re
 import bs4
-from netcon import read_config, read_email, write_log, end_escape, extract_addresses, get_address_list
+from email.header import decode_header, make_header
+from netcon import read_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii
 
 DESCRIPTION = "adds/removes tags to/from address and subject headers and text and html bodies"
 
@@ -74,7 +75,7 @@ def main(args):
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    header = "; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", " ")
+                    header = "".join([ part if isinstance(part, str) else part.decode("utf-8") if encoding is None else part.decode(encoding) for (part, encoding) in decode_header("; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                     list_address = extract_addresses(header)
 
@@ -100,6 +101,9 @@ def main(args):
 
                                 header_modified = True
 
+                            if not string_ascii(prefix):
+                                prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
+
                             if prefix:
                                 header += prefix + " "
 
@@ -119,7 +123,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # remove subject tag
 
-            header = str(email.get("Subject")).strip().replace("\n", " ")
+            header = "".join([ part if isinstance(part, str) else part.decode("utf-8") if encoding is None else part.decode(encoding) for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
 
             match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
@@ -152,7 +156,7 @@ def main(args):
         if config.address_tag and "From" in email:
             # add address tag
 
-            list_address = extract_addresses(str(email.get("From")).replace("\n", " "))
+            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode("utf-8") if encoding is None else part.decode(encoding) for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
 
             if list_address:
                 (prefix, address, suffix) = list_address[0]
@@ -179,6 +183,9 @@ def main(args):
                     else:
                         prefix = '"{} {}"'.format(config.address_tag, address)
 
+                    if not string_ascii(prefix):
+                        prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
+
                     del email["From"]
                     email["From"] = prefix + " <" + address + "> " + suffix
 
@@ -201,7 +208,7 @@ def main(args):
 
                 for header_keyword in [ "To", "Cc" ]:
                     if header_keyword in email:
-                        header = "; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", " ")
+                        header = "".join([ part if isinstance(part, str) else part.decode("utf-8") if encoding is None else part.decode(encoding) for (part, encoding) in decode_header("; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                         list_address = extract_addresses(header)
 
@@ -239,6 +246,9 @@ def main(args):
 
                                     header_modified = True
 
+                                if not string_ascii(prefix):
+                                    prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
+
                                 if prefix:
                                     header += prefix + " "
 
@@ -258,7 +268,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # add subject tag
 
-            header = str(email.get("Subject")).strip().replace("\n", " ")
+            header = "".join([ part if isinstance(part, str) else part.decode("utf-8") if encoding is None else part.decode(encoding) for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
 
             if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
                 header = "{} {}".format(config.subject_tag, header)
