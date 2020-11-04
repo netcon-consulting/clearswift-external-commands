@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.1.6
+# tag_mail.py V2.2.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -71,11 +71,13 @@ def main(args):
         if config.address_tag:
             # remove address tag
 
-            pattern = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
+            pattern_tag = re.compile(r'^"?{} '.format(re.escape(config.address_tag)))
+
+            pattern_quote = re.compile(r'^".*"$')
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header("; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                    header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                     list_address = extract_addresses(header)
 
@@ -94,14 +96,18 @@ def main(args):
                             prefix = prefix.strip()
                             suffix = suffix.strip()
 
-                            match = re.search(pattern, prefix)
-
-                            if match:
-                                prefix = '"' + prefix[len(config.address_tag) + 2:]
+                            if re.search(pattern_tag, prefix):
+                                if prefix.startswith('"'):
+                                    prefix = '"' + prefix[len(config.address_tag) + 2:]
+                                else:
+                                    prefix = prefix[len(config.address_tag) + 1:]
 
                                 header_modified = True
 
                             if not string_ascii(prefix):
+                                if re.search(pattern_quote, prefix):
+                                    prefix = prefix[1:-1]
+
                                 prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
 
                             if prefix:
@@ -112,7 +118,7 @@ def main(args):
                             if suffix:
                                 header += " " + suffix
 
-                            header += "; "
+                            header += ", "
 
                         if header_modified:
                             del email[header_keyword]
@@ -156,6 +162,10 @@ def main(args):
         if config.address_tag and "From" in email:
             # add address tag
 
+            pattern_tag = re.compile(r'^"?{} '.format(re.escape(config.address_tag)))
+
+            pattern_quote = re.compile(r'^".*"$')
+
             list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
 
             if list_address:
@@ -168,7 +178,7 @@ def main(args):
                 prefix = prefix.strip()
                 suffix = suffix.strip()
 
-                if not re.search(r'^"{} '.format(re.escape(config.address_tag)), prefix):
+                if not re.search(pattern_tag, prefix):
                     prefix_new = ""
 
                     for (index, char) in enumerate(prefix):
@@ -184,6 +194,9 @@ def main(args):
                         prefix = '"{} {}"'.format(config.address_tag, address)
 
                     if not string_ascii(prefix):
+                        if re.search(pattern_quote, prefix):
+                            prefix = prefix[1:-1]
+
                         prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
 
                     del email["From"]
@@ -204,11 +217,9 @@ def main(args):
 
                 set_domain = { match.group(1).lower() for match in [ re.search(pattern_domain, address) for address in set_address ] if match is not None }
 
-                pattern_tag = re.compile(r'^"{} '.format(re.escape(config.address_tag)))
-
                 for header_keyword in [ "To", "Cc" ]:
                     if header_keyword in email:
-                        header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header("; ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                        header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                         list_address = extract_addresses(header)
 
@@ -247,6 +258,9 @@ def main(args):
                                     header_modified = True
 
                                 if not string_ascii(prefix):
+                                    if re.search(pattern_quote, prefix):
+                                        prefix = prefix[1:-1]
+
                                     prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
 
                                 if prefix:
@@ -257,7 +271,7 @@ def main(args):
                                 if suffix:
                                     header += " " + suffix
 
-                                header += "; "
+                                header += ", "
 
                             if header_modified:
                                 del email[header_keyword]
