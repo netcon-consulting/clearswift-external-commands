@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# fix_charset.py V1.0.0
+# fix_charset.py V1.0.1
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,6 +12,7 @@ import sys
 
 import argparse
 import re
+from email.encoders import encode_quopri, encode_base64
 from netcon import read_config, read_email, write_log
 
 DESCRIPTION = "sets charset in meta tag in HMTL body to charset defined in Content-Type header"
@@ -58,6 +59,14 @@ def main(args):
                         content = re.sub(r"(<meta [^>]*charset=)({})".format(charset_meta), r"\1{}".format(charset_mime), content, re.I)
 
                         part.set_payload(content.encode(charset_mime))
+
+                        if "Content-Transfer-Encoding" in part:
+                            cte = part.get("Content-Transfer-Encoding").lower()
+
+                            if (cte == "quoted-printable"):
+                                encode_quopri(part)
+                            elif (cte == "base64"):
+                                encode_base64(part)
 
                         try:
                             with open(args.input, "wb") as f:
