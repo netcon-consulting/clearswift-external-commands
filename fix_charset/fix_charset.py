@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# fix_charset.py V1.0.1
+# fix_charset.py V1.0.2
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -33,6 +33,8 @@ class ReturnCode(enum.IntEnum):
 
 CONFIG_PARAMETERS = (  )
 
+HEADER_CTE = "Content-Transfer-Encoding"
+
 def main(args):
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
@@ -60,12 +62,16 @@ def main(args):
 
                         part.set_payload(content.encode(charset_mime))
 
-                        if "Content-Transfer-Encoding" in part:
-                            cte = part.get("Content-Transfer-Encoding").lower()
+                        if HEADER_CTE in part:
+                            cte = part.get(HEADER_CTE).lower()
 
                             if (cte == "quoted-printable"):
+                                del part[HEADER_CTE]
+
                                 encode_quopri(part)
                             elif (cte == "base64"):
+                                del part[HEADER_CTE]
+
                                 encode_base64(part)
 
                         try:

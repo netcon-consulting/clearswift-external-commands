@@ -1,4 +1,4 @@
-fix_charset.py V1.0.1
+fix_charset.py V1.0.2
 =====================
 
 Sets charset in meta tag in HMTL body to charset defined in Content-Type header.
