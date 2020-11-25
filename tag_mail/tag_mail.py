@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.2.0
+# tag_mail.py V2.3.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -14,7 +14,7 @@ import argparse
 import re
 import bs4
 from email.header import decode_header, make_header
-from netcon import read_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii
+from netcon import CHARSET_UTF8, read_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii
 
 DESCRIPTION = "adds/removes tags to/from address and subject headers and text and html bodies"
 
@@ -35,6 +35,8 @@ class ReturnCode(enum.IntEnum):
 CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
 
 def main(args):
+    HEADER_CTE = "Content-Transfer-Encoding"
+
     try:
         config = read_config(args.config, CONFIG_PARAMETERS)
 
@@ -45,23 +47,33 @@ def main(args):
         return ReturnCode.ERROR
 
     if config.text_tag:
-        part_text = None
+        text_part = None
 
         for part in email.walk():
             if part.get_content_type() == "text/plain":
-                part_text = part
-                content_text = part_text.get_payload(decode=True).decode("utf-8", errors="ignore")
+                text_part = part
+                text_charset = text_part.get_content_charset()
+
+                if text_charset is None:
+                    text_charset = CHARSET_UTF8
+
+                text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore")
 
                 break
 
     if config.html_tag:
-        part_html = None
+        html_part = None
 
         for part in email.walk():
             if part.get_content_type() == "text/html":
-                part_html = part
-                content_html = part_html.get_payload(decode=True).decode("utf-8", errors="ignore")
-                soup = bs4.BeautifulSoup(content_html, features="html5lib")
+                html_part = part
+                html_charset = html_part.get_content_charset()
+
+                if html_charset is None:
+                    html_charset = CHARSET_UTF8
+
+                html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
+                soup = bs4.BeautifulSoup(html_content, features="html5lib")
 
                 break
 
@@ -77,7 +89,7 @@ def main(args):
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                    header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                     list_address = extract_addresses(header)
 
@@ -108,7 +120,7 @@ def main(args):
                                 if re.search(pattern_quote, prefix):
                                     prefix = prefix[1:-1]
 
-                                prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
+                                prefix = make_header([ ( prefix.encode(CHARSET_UTF8), CHARSET_UTF8 ) ]).encode()
 
                             if prefix:
                                 header += prefix + " "
@@ -129,7 +141,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # remove subject tag
 
-            header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
+            header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
 
             match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
@@ -139,14 +151,17 @@ def main(args):
 
                 email_modified = True
 
-        if config.text_tag and part_text is not None and config.text_tag in content_text:
+        if config.text_tag and text_part is not None and config.text_tag in text_content:
             # remove text body tag
 
-            part_text.set_payload(content_text.replace(config.text_tag, ""))
+            if HEADER_CTE in text_part:
+                del text_part[HEADER_CTE]
+
+            text_part.set_payload(text_content.replace(config.text_tag, ""), charset=text_charset)
 
             email_modified = True
 
-        if config.html_tag and part_html is not None:
+        if config.html_tag and html_part is not None:
             # remove html body tag
 
             list_tag = soup.find_all("div", id=config.html_tag_id)
@@ -155,7 +170,10 @@ def main(args):
                 for tag in list_tag:
                     tag.decompose()
 
-                part_html.set_payload(str(soup))
+                if HEADER_CTE in html_part:
+                    del html_part[HEADER_CTE]
+
+                html_part.set_payload(str(soup), charset=html_charset)
 
                 email_modified = True
     else:
@@ -166,7 +184,7 @@ def main(args):
 
             pattern_quote = re.compile(r'^".*"$')
 
-            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
+            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
 
             if list_address:
                 (prefix, address, suffix) = list_address[0]
@@ -197,7 +215,7 @@ def main(args):
                         if re.search(pattern_quote, prefix):
                             prefix = prefix[1:-1]
 
-                        prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
+                        prefix = make_header([ ( prefix.encode(CHARSET_UTF8), CHARSET_UTF8 ) ]).encode()
 
                     del email["From"]
                     email["From"] = prefix + " <" + address + "> " + suffix
@@ -206,6 +224,7 @@ def main(args):
 
             if config.name_domain_list:
                 # add address tag to external addresses in To/Cc header
+
                 try:
                     set_address = get_address_list(config.name_domain_list)
                 except Exception as ex:
@@ -219,7 +238,7 @@ def main(args):
 
                 for header_keyword in [ "To", "Cc" ]:
                     if header_keyword in email:
-                        header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                        header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                         list_address = extract_addresses(header)
 
@@ -261,7 +280,7 @@ def main(args):
                                     if re.search(pattern_quote, prefix):
                                         prefix = prefix[1:-1]
 
-                                    prefix = make_header([ ( prefix.encode("utf-8"), "utf-8" ) ]).encode()
+                                    prefix = make_header([ ( prefix.encode(CHARSET_UTF8), CHARSET_UTF8 ) ]).encode()
 
                                 if prefix:
                                     header += prefix + " "
@@ -282,7 +301,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # add subject tag
 
-            header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode("utf-8", errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
+            header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
 
             if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
                 header = "{} {}".format(config.subject_tag, header)
@@ -292,38 +311,44 @@ def main(args):
 
                 email_modified = True
 
-        if config.text_tag and part_text is not None and config.text_tag not in content_text:
+        if config.text_tag and text_part is not None and config.text_tag not in text_content:
             # add text body tag
 
             position_lower = config.text_position.lower()
 
             if position_lower == "top":
-                content_text = config.text_tag + content_text
+                text_content = config.text_tag + text_content
             elif position_lower == "bottom":
-                content_text += config.text_tag
+                text_content += config.text_tag
             else:
                 write_log(args.log, "Invalid tag position '{}'".format(config.text_position))
 
                 return ReturnCode.ERROR
 
-            part_text.set_payload(content_text)
+            if text_charset != CHARSET_UTF8 and not string_ascii(config.text_tag):
+                text_charset = CHARSET_UTF8
+
+            if HEADER_CTE in text_part:
+                del text_part[HEADER_CTE]
+
+            text_part.set_payload(text_content, charset=text_charset)
 
             email_modified = True
 
-        if config.html_tag and part_html is not None and soup.find("div", id=config.html_tag_id) is None:
+        if config.html_tag and html_part is not None and soup.find("div", id=config.html_tag_id) is None:
             # add html body tag
 
             position_lower = config.html_position.lower()
 
             if position_lower == "top":
-                match = re.search(r"<body[^>]*>", content_html)
+                match = re.search(r"<body[^>]*>", html_content)
 
                 if match:
                     index = match.end(0)
                 else:
                     index = -1
             elif position_lower == "bottom":
-                index = content_html.find("</body>")
+                index = html_content.find("</body>")
             else:
                 write_log(args.log, "Invalid tag position '{}'".format(config.html_position))
 
@@ -334,7 +359,13 @@ def main(args):
 
                 return ReturnCode.ERROR
 
-            part_html.set_payload(content_html[:index] + '<div id="{}">{}</div>'.format(config.html_tag_id, config.html_tag) + content_html[index:])
+            if HEADER_CTE in html_part:
+                del html_part[HEADER_CTE]
+
+            if html_charset != CHARSET_UTF8 and not string_ascii(config.html_tag):
+                html_charset = CHARSET_UTF8
+
+            html_part.set_payload(html_content[:index] + '<div id="{}">{}</div>'.format(config.html_tag_id, config.html_tag) + html_content[index:], charset=html_charset)
 
             email_modified = True
 
