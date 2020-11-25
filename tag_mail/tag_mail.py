@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.4.0
+# tag_mail.py V2.5.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -73,7 +73,6 @@ def main(args):
                     html_charset = CHARSET_UTF8
 
                 html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
-                soup = bs4.BeautifulSoup(html_content, features="html5lib")
 
                 break
 
@@ -158,10 +157,18 @@ def main(args):
 
             body_modified = False
 
-            if config.text_tag and config.text_tag in text_content:
-                text_content = text_content.replace(config.text_tag, "")
+            if config.text_tag:
+                if config.text_tag in text_content:
+                    text_content = text_content.replace(config.text_tag, "")
 
-                body_modified = True
+                    body_modified = True
+                else:
+                    text_tag = config.text_tag.replace("\n", "\n> ")
+
+                    if text_tag in text_content:
+                        text_content = text_content.replace(text_tag, "")
+
+                        body_modified = True
 
             if config.address_tag and config.clean_text and string_tag in text_content:
                 text_content = text_content.replace(string_tag, "")
@@ -180,6 +187,8 @@ def main(args):
             # remove html body tag
 
             body_modified = False
+
+            soup = bs4.BeautifulSoup(html_content, features="html5lib")
 
             list_tag = soup.find_all("div", id=config.html_tag_id)
 
@@ -338,7 +347,7 @@ def main(args):
 
                 email_modified = True
 
-        if config.text_tag and text_part is not None and config.text_tag not in text_content:
+        if config.text_tag and text_part is not None:
             # add text body tag
 
             position_lower = config.text_position.lower()
@@ -362,7 +371,7 @@ def main(args):
 
             email_modified = True
 
-        if config.html_tag and html_part is not None and soup.find("div", id=config.html_tag_id) is None:
+        if config.html_tag and html_part is not None:
             # add html body tag
 
             position_lower = config.html_position.lower()
