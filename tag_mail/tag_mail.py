@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.3.0
+# tag_mail.py V2.4.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -32,7 +32,7 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
+CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
 
 def main(args):
     HEADER_CTE = "Content-Transfer-Encoding"
@@ -46,7 +46,7 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    if config.text_tag:
+    if config.text_tag or (args.remove and config.address_tag and config.clean_text):
         text_part = None
 
         for part in email.walk():
@@ -61,7 +61,7 @@ def main(args):
 
                 break
 
-    if config.html_tag:
+    if config.html_tag or (args.remove and config.address_tag and config.clean_html):
         html_part = None
 
         for part in email.walk():
@@ -82,6 +82,8 @@ def main(args):
     if args.remove:
         if config.address_tag:
             # remove address tag
+
+            string_tag = "{} ".format(config.address_tag)
 
             pattern_tag = re.compile(r'^"?{} '.format(re.escape(config.address_tag)))
 
@@ -151,18 +153,33 @@ def main(args):
 
                 email_modified = True
 
-        if config.text_tag and text_part is not None and config.text_tag in text_content:
+        if (config.text_tag or (config.address_tag and config.clean_text)) and text_part is not None:
             # remove text body tag
 
-            if HEADER_CTE in text_part:
-                del text_part[HEADER_CTE]
+            body_modified = False
 
-            text_part.set_payload(text_content.replace(config.text_tag, ""), charset=text_charset)
+            if config.text_tag and config.text_tag in text_content:
+                text_content = text_content.replace(config.text_tag, "")
 
-            email_modified = True
+                body_modified = True
 
-        if config.html_tag and html_part is not None:
+            if config.address_tag and config.clean_text and string_tag in text_content:
+                text_content = text_content.replace(string_tag, "")
+
+                body_modified = True
+
+            if body_modified:
+                if HEADER_CTE in text_part:
+                    del text_part[HEADER_CTE]
+
+                text_part.set_payload(text_content, charset=text_charset)
+
+                email_modified = True
+
+        if (config.html_tag or (config.address_tag and config.clean_html)) and html_part is not None:
             # remove html body tag
+
+            body_modified = False
 
             list_tag = soup.find_all("div", id=config.html_tag_id)
 
@@ -170,10 +187,20 @@ def main(args):
                 for tag in list_tag:
                     tag.decompose()
 
+                html_content = str(soup)
+
+                body_modified = True
+
+            if config.address_tag and config.clean_html and string_tag in html_content:
+                html_content = html_content.replace(string_tag, "")
+
+                body_modified = True
+
+            if body_modified:
                 if HEADER_CTE in html_part:
                     del html_part[HEADER_CTE]
 
-                html_part.set_payload(str(soup), charset=html_charset)
+                html_part.set_payload(html_content, charset=html_charset)
 
                 email_modified = True
     else:
