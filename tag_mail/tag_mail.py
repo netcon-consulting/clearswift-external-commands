@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.5.0
+# tag_mail.py V2.6.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -57,7 +57,7 @@ def main(args):
                 if text_charset is None:
                     text_charset = CHARSET_UTF8
 
-                text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore")
+                text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore").replace("\r", "")
 
                 break
 
@@ -158,17 +158,19 @@ def main(args):
             body_modified = False
 
             if config.text_tag:
-                if config.text_tag in text_content:
-                    text_content = text_content.replace(config.text_tag, "")
+                split_tag = config.text_tag.split("\n")
+
+                while not split_tag[-1]:
+                    del split_tag[-1]
+
+                pattern_tag = re.compile("\\n".join([ r"(>+ )*" + re.escape(item) for item in split_tag ]) + r"\n")
+
+                match = re.search(pattern_tag, text_content)
+
+                if match:
+                    text_content = re.sub(pattern_tag, "", text_content)
 
                     body_modified = True
-                else:
-                    text_tag = config.text_tag.replace("\n", "\n> ")
-
-                    if text_tag in text_content:
-                        text_content = text_content.replace(text_tag, "")
-
-                        body_modified = True
 
             if config.address_tag and config.clean_text and string_tag in text_content:
                 text_content = text_content.replace(string_tag, "")
