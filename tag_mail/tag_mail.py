@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.6.0
+# tag_mail.py V2.7.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -384,16 +384,23 @@ def main(args):
                 if match:
                     index = match.end(0)
                 else:
-                    index = -1
+                    match = re.search(r"<html[^>]*>", html_content)
+
+                    if match:
+                        index = match.end(0)
+                    else:
+                        index = 0
+
             elif position_lower == "bottom":
                 index = html_content.find("</body>")
+
+                if index < 0:
+                    index = html_content.find("</html>")
+
+                    if index < 0:
+                        index = len(html_content) - 1
             else:
                 write_log(args.log, "Invalid tag position '{}'".format(config.html_position))
-
-                return ReturnCode.ERROR
-
-            if index <= 0:
-                write_log(args.log, "Cannot find index of tag position")
 
                 return ReturnCode.ERROR
 
