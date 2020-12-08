@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.7.0
+# tag_mail.py V2.8.0
 #
 # Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -192,7 +192,7 @@ def main(args):
 
             soup = bs4.BeautifulSoup(html_content, features="html5lib")
 
-            list_tag = soup.find_all("div", id=config.html_tag_id)
+            list_tag = soup.find_all("div", id=re.compile(r".*{}.*".format(re.escape(config.html_tag_id))))
 
             if list_tag:
                 for tag in list_tag:
