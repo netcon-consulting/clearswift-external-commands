@@ -1,0 +1,45 @@
+{
+    "Tag mail": {
+        "list_address": [
+            "Internal Domains"
+        ],
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Not modified" },
+            "1": { "action": "MODIFIED", "description": "Mail tagged" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "config": {
+            "address_tag": "\"[EXT]\"",
+            "name_domain_list": "\"Internal Domains\"",
+            "clean_text": "true",
+            "clean_html": "true",
+            "subject_tag": "\"[EXTERNAL]\"",
+            "text_tag": "\"###### EXTERNAL SENDER ######\\n\"",
+            "text_top": "true",
+            "html_tag": "\"###### EXTERNAL SENDER ######\\n\"",
+            "html_top": "true",
+            "html_tag_id": "\"tag_mail_1\""
+        }
+    },
+    "Un-tag mail": {
+        "list_address": [
+            "Internal Domains"
+        ],
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "parameters": "-r %FILENAME% %LOGNAME% 'Config - Tag mail'",
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Not modified" },
+            "1": { "action": "MODIFIED", "description": "Mail un-tagged" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        }
+    }
+}

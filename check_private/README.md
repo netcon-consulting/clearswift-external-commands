@@ -1,6 +1,11 @@
-check_private.py V1.0.1
+check_private.py V1.1.0
 =======================
 
-Checks sensitivity header for private keyword and that private mails not exceed max_size and have no attachments.
+Checks sensitivity header for private keyword and that private mails not exceed size limit and have no attachments.
 
-Adjust the parameters in the .toml configuration file to your needs.
+## Parameters
+* max_size_kb (integer): maximum mail size for private mails in kB
+
+## Hold Areas
+* Not private: mails without sensitivity header or sensitivity header not private
+* Invalid private: mails with private sensitivity header but exceeding size limit or having attachments

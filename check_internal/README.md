@@ -1,6 +1,11 @@
-check_internal.py V1.2.1
+check_internal.py V1.3.0
 ========================
 
-Checks sender IP in defined internal networks and sender domain on defined address list.
+Checks whether sender IP is in internal networks and sender domain is internal domain.
 
-Adjust the parameters in the .toml configuration file to your needs.
+## Parameters
+* name_address_list (string): name of CS address list with internal domains
+* internal_networks (list of strings): list of internal network CIDR
+
+## Address lists
+* Internal domains: list of internal domains

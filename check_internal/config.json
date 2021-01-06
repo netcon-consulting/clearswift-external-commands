@@ -1,0 +1,24 @@
+{
+    "Check internal": {
+        "list_address": [
+            "Internal Domains"
+        ],
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "External sender" },
+            "1": { "action": "DETECTED", "description": "Internal sender" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "deliver" }
+        },
+        "config": {
+            "name_address_list": "\"Internal Domains\"",
+            "internal_networks": "[ \"40.92.0.0/15\", \"40.107.0.0/16\", \"52.100.0.0/14\", \"104.47.0.0/17\" ]"
+        }
+    }
+}

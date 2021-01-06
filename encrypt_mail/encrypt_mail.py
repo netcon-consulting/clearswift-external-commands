@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.4.2
+# encrypt_mail.py V1.5.0
 #
-# Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -15,10 +15,11 @@ import random
 import string
 from email.message import EmailMessage
 import smtplib
-from netcon import ParserArgs, read_config, read_email, write_log, zip_encrypt, extract_email_addresses, extract_email_address
+from netcon import ParserArgs, get_config, read_email, write_log, zip_encrypt, extract_email_addresses, extract_email_address
 
-DESCRIPTION = "if keyword present in subject zip-encrypts email, sends it to recipients and generated password to sender"
+DESCRIPTION = "zip-encrypts email if trigger keyword present in subject header and sends it to recipients and generated password to sender"
 
+@enum.unique
 class ReturnCode(enum.IntEnum):
     """
     Return code.
@@ -42,7 +43,7 @@ PORT_SMTP=10026
 
 def main(args):
     try:
-        config = read_config(args.config, CONFIG_PARAMETERS)
+        config = get_config(args.config, CONFIG_PARAMETERS)
 
         email = read_email(args.input)
     except Exception as ex:
@@ -150,12 +151,7 @@ def main(args):
 
 if __name__ == "__main__":
     if CONFIG_PARAMETERS:
-        if __file__.endswith(".py"):
-            config_default = __file__[:-3] + ".toml"
-        else:
-            config_default = __file__ + ".toml"
-
-        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+        parser = ParserArgs(DESCRIPTION, config=True)
     else:
         parser = ParserArgs(DESCRIPTION)
 

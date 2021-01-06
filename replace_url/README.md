@@ -1,6 +1,11 @@
-replace_url.py V1.1.2
+replace_url.py V1.2.0
 =====================
 
-Replace URLs in text and html body if one of the keywords is found.
+Replaces URLs in text and html body if one of the keywords is found.
 
-Keywords can be defined in the CS web interface using the lexical expression list 'Replace URL'.
+## Parameters
+* name_expression_list (string): name of lexical expression list with keywords
+* url_replacement (string): replacement URL
+
+## Lexical expression lists
+* Replace URL: list of regex keywords

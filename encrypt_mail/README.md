@@ -1,6 +1,12 @@
-encrypt_mail.py V1.4.2
+encrypt_mail.py V1.5.0
 ======================
 
-Zip-encrypts the email if a defined keyword is present in the subject and sends it to the recipients and the generated password to the sender.
+Zip-encrypts email if trigger keyword present in subject header and sends it to recipients and generated password to sender.
 
-Adjust the parameters in the .toml configuration file to your needs.
+## Parameters
+* keyword_encryption (string): trigger keyword in subject header
+* password_length (integer): length of zip-encryption password
+* password_punctuation (boolean): include punctuation characters for password generation
+
+## Hold Areas
+* Encrypt mail: copies of the original mails which have been encrypted

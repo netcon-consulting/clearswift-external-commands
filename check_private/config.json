@@ -1,0 +1,22 @@
+{
+    "Check private": {
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Private" },
+            "1": { "action": "DETECTED", "description": "Not private" },
+            "2": { "action": "MODIFIED", "description": "Invalid private (%LOGTEXT%)" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Not private" },
+            "modified": { "primary": "hold:Invalid private" }
+        },
+        "config": {
+            "max_size_kb": "25"
+        }
+    }
+}

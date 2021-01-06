@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# check_internal.py V1.2.1
+# check_internal.py V1.3.0
 #
-# Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -12,10 +12,11 @@ import sys
 
 import re
 from ipaddress import IPv4Address, IPv4Network
-from netcon import ParserArgs, read_config, read_email, write_log, get_address_list, extract_email_address
+from netcon import ParserArgs, get_config, read_email, write_log, get_address_list, extract_email_address
 
-DESCRIPTION = "checks sender IP in defined internal networks and sender domain on defined address list"
+DESCRIPTION = "checks whether sender IP is in internal networks and sender domain is internal domain"
 
+@enum.unique
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
@@ -34,7 +35,7 @@ CONFIG_PARAMETERS = ( "name_address_list", "internal_networks" )
 
 def main(args):
     try:
-        config = read_config(args.config, CONFIG_PARAMETERS)
+        config = get_config(args.config, CONFIG_PARAMETERS)
 
         email = read_email(args.input)
     except Exception as ex:
@@ -141,12 +142,7 @@ def main(args):
 
 if __name__ == "__main__":
     if CONFIG_PARAMETERS:
-        if __file__.endswith(".py"):
-            config_default = __file__[:-3] + ".toml"
-        else:
-            config_default = __file__ + ".toml"
-
-        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+        parser = ParserArgs(DESCRIPTION, config=True)
     else:
         parser = ParserArgs(DESCRIPTION)
 

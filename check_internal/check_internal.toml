@@ -1,3 +1,0 @@
-name_address_list = "My Domains"
-
-internal_networks = [ "40.92.0.0/15", "40.107.0.0/16", "52.100.0.0/14", "104.47.0.0/17" ]

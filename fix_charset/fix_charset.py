@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# fix_charset.py V1.0.2
+# fix_charset.py V1.1.0
 #
-# Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -10,13 +10,13 @@ import sys
 
 #########################################################################################
 
-import argparse
 import re
 from email.encoders import encode_quopri, encode_base64
-from netcon import read_config, read_email, write_log
+from netcon import ParserArgs, read_email, write_log
 
-DESCRIPTION = "sets charset in meta tag in HMTL body to charset defined in Content-Type header"
+DESCRIPTION = "sets charset in meta tag in html body to charset defined in content-type header"
 
+@enum.unique
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
@@ -31,14 +31,12 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = (  )
+CONFIG_PARAMETERS = ( )
 
 HEADER_CTE = "Content-Transfer-Encoding"
 
 def main(args):
     try:
-        config = read_config(args.config, CONFIG_PARAMETERS)
-
         email = read_email(args.input)
     except Exception as ex:
         write_log(args.log, ex)
@@ -89,22 +87,10 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    if __file__.endswith(".py"):
-        config_default = __file__[:-3] + ".toml"
+    if CONFIG_PARAMETERS:
+        parser = ParserArgs(DESCRIPTION, config=True)
     else:
-        config_default = __file__ + ".toml"
-
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-
-    parser.add_argument(
-        "-c",
-        "--config",
-        metavar="CONFIG",
-        type=str,
-        default=config_default,
-        help="path to configuration file (default={})".format(config_default))
-    parser.add_argument("input", metavar="INPUT", type=str, help="input file")
-    parser.add_argument("log", metavar="LOG", type=str, help="log file")
+        parser = ParserArgs(DESCRIPTION)
 
     args = parser.parse_args()
 

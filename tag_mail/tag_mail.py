@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V2.8.0
+# tag_mail.py V3.0.0
 #
-# Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -10,14 +10,14 @@ import sys
 
 #########################################################################################
 
-import argparse
 import re
 import bs4
 from email.header import decode_header, make_header
-from netcon import CHARSET_UTF8, read_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii
+from netcon import CHARSET_UTF8, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii
 
-DESCRIPTION = "adds/removes tags to/from address and subject headers and text and html bodies"
+DESCRIPTION = "adds and removes tags in address and subject headers and text and html bodies"
 
+@enum.unique
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
@@ -32,13 +32,13 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_position", "html_tag", "html_position", "html_tag_id" )
+CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id" )
 
 def main(args):
     HEADER_CTE = "Content-Transfer-Encoding"
 
     try:
-        config = read_config(args.config, CONFIG_PARAMETERS)
+        config = get_config(args.config, CONFIG_PARAMETERS)
 
         email = read_email(args.input)
     except Exception as ex:
@@ -352,16 +352,10 @@ def main(args):
         if config.text_tag and text_part is not None:
             # add text body tag
 
-            position_lower = config.text_position.lower()
-
-            if position_lower == "top":
+            if config.text_top:
                 text_content = config.text_tag + text_content
-            elif position_lower == "bottom":
-                text_content += config.text_tag
             else:
-                write_log(args.log, "Invalid tag position '{}'".format(config.text_position))
-
-                return ReturnCode.ERROR
+                text_content += config.text_tag
 
             if text_charset != CHARSET_UTF8 and not string_ascii(config.text_tag):
                 text_charset = CHARSET_UTF8
@@ -376,9 +370,7 @@ def main(args):
         if config.html_tag and html_part is not None:
             # add html body tag
 
-            position_lower = config.html_position.lower()
-
-            if position_lower == "top":
+            if config.html_top:
                 match = re.search(r"<body[^>]*>", html_content)
 
                 if match:
@@ -391,7 +383,7 @@ def main(args):
                     else:
                         index = 0
 
-            elif position_lower == "bottom":
+            else:
                 index = html_content.find("</body>")
 
                 if index < 0:
@@ -399,10 +391,6 @@ def main(args):
 
                     if index < 0:
                         index = len(html_content) - 1
-            else:
-                write_log(args.log, "Invalid tag position '{}'".format(config.html_position))
-
-                return ReturnCode.ERROR
 
             if HEADER_CTE in html_part:
                 del html_part[HEADER_CTE]
@@ -430,22 +418,7 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    if __file__.endswith(".py"):
-        config_default = __file__[:-3] + ".toml"
-    else:
-        config_default = __file__ + ".toml"
-
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-
-    parser.add_argument(
-        "-c",
-        "--config",
-        metavar="CONFIG",
-        type=str,
-        default=config_default,
-        help="path to configuration file (default={})".format(config_default))
-    parser.add_argument("input", metavar="INPUT", type=str, help="input file")
-    parser.add_argument("log", metavar="LOG", type=str, help="log file")
+    parser = ParserArgs(DESCRIPTION, config=True)
     parser.add_argument("-r", "--remove", action="store_true", help="remove tags")
 
     args = parser.parse_args()

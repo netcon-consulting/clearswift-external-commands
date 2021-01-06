@@ -1,6 +1,10 @@
-check_string.py V1.2.1
+check_string.py V1.3.0
 ======================
 
 Checks raw email text for combination of strings.
 
-Adjust the parameters in the .toml configuration file to your needs.
+## Parameters
+* search_strings (list of list of strings): list of string combinations to search
+
+## Hold Areas
+* String detected: mails containing string combination

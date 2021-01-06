@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.1.2
+# replace_url.py V1.2.0
 #
-# Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -12,10 +12,11 @@ import sys
 
 import re
 from bs4 import BeautifulSoup
-from netcon import ParserArgs, read_config, read_email, write_log, get_expression_list, html2text
+from netcon import ParserArgs, get_config, read_email, write_log, get_expression_list, html2text
 
-DESCRIPTION = "replaces URLs in text and html body if one of the keywords in CS expression list is found"
+DESCRIPTION = "replaces URLs in text and html body if one of the keywords is found"
 
+@enum.unique
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
@@ -36,7 +37,7 @@ PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)
 
 def main(args):
     try:
-        config = read_config(args.config, CONFIG_PARAMETERS)
+        config = get_config(args.config, CONFIG_PARAMETERS)
 
         email = read_email(args.input)
     except Exception as ex:
@@ -135,12 +136,7 @@ def main(args):
 
 if __name__ == "__main__":
     if CONFIG_PARAMETERS:
-        if __file__.endswith(".py"):
-            config_default = __file__[:-3] + ".toml"
-        else:
-            config_default = __file__ + ".toml"
-
-        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+        parser = ParserArgs(DESCRIPTION, config=True)
     else:
         parser = ParserArgs(DESCRIPTION)
 

@@ -1,0 +1,20 @@
+{
+    "Check recipient limit": {
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Limit ok" },
+            "1": { "action": "DETECTED", "description": "Limit exceeded" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Recipient limit" }
+        },
+        "config": {
+            "recipient_limit": "5"
+        }
+    }
+}

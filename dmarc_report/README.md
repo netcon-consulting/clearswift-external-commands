@@ -1,8 +1,9 @@
-dmarc_report.py V1.0.0
+dmarc_report.py V1.0.1
 ======================
 
 Parses DMARC xml reports and writes results to syslog.
 
+## Notes
 Requires syslog-ng configuration /etc/syslog-ng/conf.d/dmarc_report.conf:
 
 filter f_dmarc_report { program('^dmarc_report') };
@@ -14,5 +15,5 @@ destination d_dmarc_report {
         template("$DATE $MSGHDR$MESSAGE\n")
     );
 };
- 
+
 log { source(s_sys); filter(f_dmarc_report); destination(d_dmarc_report); };

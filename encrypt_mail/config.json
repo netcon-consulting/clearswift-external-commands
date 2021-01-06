@@ -1,0 +1,23 @@
+{
+    "Encrypt mail": {
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "timeout": 120,
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Encryption skipped" },
+            "1": { "action": "DETECTED", "description": "Mail encrypted" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Encrypt mail" }
+        },
+        "config": {
+            "keyword_encryption": "\"[encrypt]\"",
+            "password_length": "32",
+            "password_punctuation": "true"
+        }
+    }
+}

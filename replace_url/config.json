@@ -1,0 +1,21 @@
+{
+    "Replace URL": {
+        "list_lexical": [
+            "Replace URL"
+        ],
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Not modified" },
+            "1": { "action": "MODIFIED", "description": "URL replaced" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "config": {
+            "name_expression_list": "\"Replace URL\"",
+            "url_replacement": "\"https://www.fsf.org\""
+        }
+    }
+}

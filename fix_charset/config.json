@@ -1,0 +1,14 @@
+{
+    "Fix charset": {
+        "media_types": {
+            "OUTLOOK": [ "not_protected" ],
+            "TNEF": [ "not_protected" ],
+            "SMTP": [ "not_protected" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Not modified" },
+            "1": { "action": "MODIFIED", "description": "Charset changed" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        }
+    }
+}

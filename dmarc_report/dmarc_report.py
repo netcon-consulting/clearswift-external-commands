@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# dmarc_report.py V1.0.0
+# dmarc_report.py V1.0.1
 #
-# Copyright (c) 2020 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -17,6 +17,7 @@ from netcon import ParserArgs, read_file, write_log
 
 DESCRIPTION = "parses DMARC xml reports and writes results to syslog"
 
+@enum.unique
 class ReturnCode(enum.IntEnum):
     """
     Return codes.
@@ -111,12 +112,7 @@ def main(args):
 
 if __name__ == "__main__":
     if CONFIG_PARAMETERS:
-        if __file__.endswith(".py"):
-            config_default = __file__[:-3] + ".toml"
-        else:
-            config_default = __file__ + ".toml"
-
-        parser = ParserArgs(DESCRIPTION, config_default=config_default)
+        parser = ParserArgs(DESCRIPTION, config=True)
     else:
         parser = ParserArgs(DESCRIPTION)
 
