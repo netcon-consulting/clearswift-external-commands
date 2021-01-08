@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.5.0
+# encrypt_mail.py V1.5.1
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -150,10 +150,7 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    if CONFIG_PARAMETERS:
-        parser = ParserArgs(DESCRIPTION, config=True)
-    else:
-        parser = ParserArgs(DESCRIPTION)
+    parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
 
     args = parser.parse_args()
 

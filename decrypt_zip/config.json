@@ -1,0 +1,26 @@
+{
+    "Decrypt ZIP": {
+        "modules": [
+            "pyzipper"
+        ],
+        "list_lexical": [
+            "Decrypt ZIP passwords"
+        ],
+        "media_types": {
+            "ZIP": [ "encrypted" ]
+        },
+        "return_codes": {
+            "0": { "action": "NONE", "description": "Decryption successful (%LOGTEXT%)" },
+            "1": { "action": "DETECTED", "description": "Decryption successful but virus found (%LOGTEXT%)" },
+            "2": { "action": "MODIFIED", "description": "Decryption failed" },
+            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:ZIP Virus" },
+            "modified": { "primary": "hold:ZIP decryption failed" }
+        },
+        "config": {
+            "name_expression_list": "\"Decrypt ZIP passwords\""
+        }
+    }
+}

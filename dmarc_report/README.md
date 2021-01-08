@@ -1,4 +1,4 @@
-dmarc_report.py V1.0.1
+dmarc_report.py V1.0.2
 ======================
 
 Parses DMARC xml reports and writes results to syslog.
