@@ -10,7 +10,7 @@
             "ZIP": [ "encrypted" ]
         },
         "return_codes": {
-            "0": { "action": "NONE", "description": "Decryption successful (%LOGTEXT%)" },
+            "0": { "action": "NONE", "description": "Decryption successful" },
             "1": { "action": "DETECTED", "description": "Decryption successful but virus found (%LOGTEXT%)" },
             "2": { "action": "MODIFIED", "description": "Decryption failed" },
             "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
