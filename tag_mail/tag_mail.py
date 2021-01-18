@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V3.0.0
+# tag_mail.py V3.0.1
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -13,7 +13,7 @@ import sys
 import re
 import bs4
 from email.header import decode_header, make_header
-from netcon import CHARSET_UTF8, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii
+from netcon import ParserArgs, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii, CHARSET_UTF8
 
 DESCRIPTION = "adds and removes tags in address and subject headers and text and html bodies"
 
