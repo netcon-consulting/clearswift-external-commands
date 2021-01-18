@@ -14,7 +14,7 @@
             "detected": { "primary": "hold:String detected" }
         },
         "config": {
-            "search_strings": [ [ "AAAAATEy", "EA\r\nAABI" ], [ "T8hlGOo9", "OKl2N\r\nC", "AAAAAAAA" ], [ "3r0TRZfh", "AAAAAAAA" ], [ "\n/s1Caa6", "J1Ls9RWH" ], [ "://44449" ], [ "://84371" ], [ "://87756" ], [ "://94654" ] ]
+            "search_strings": { "type": "list of list of strings", "description": "list of string combinations to search", "value": [ [ "AAAAATEy", "EA\r\nAABI" ], [ "T8hlGOo9", "OKl2N\r\nC", "AAAAAAAA" ], [ "3r0TRZfh", "AAAAAAAA" ], [ "\n/s1Caa6", "J1Ls9RWH" ], [ "://44449" ], [ "://84371" ], [ "://87756" ], [ "://94654" ] ] }
         }
     }
 }

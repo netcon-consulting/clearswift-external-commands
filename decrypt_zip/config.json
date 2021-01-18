@@ -20,7 +20,7 @@
             "modified": { "primary": "hold:ZIP decryption failed" }
         },
         "config": {
-            "name_expression_list": "\"Decrypt ZIP passwords\""
+            "name_expression_list": { "type": "string", "description": "name of lexical expression list with passwords", "value": "\"Decrypt ZIP passwords\"" }
         }
     }
 }

@@ -15,9 +15,9 @@
             "detected": { "primary": "hold:Encrypt mail" }
         },
         "config": {
-            "keyword_encryption": "\"[encrypt]\"",
-            "password_length": "32",
-            "password_punctuation": "true"
+            "keyword_encryption": { "type": "string", "description": "trigger keyword in subject header", "value": "\"[encrypt]\"" },
+            "password_length": { "type": "integer", "description": "length of zip-encryption password", "value": "32" },
+            "password_punctuation": { "type": "boolean", "description": "include punctuation characters for password generation", "value": "true" }
         }
     }
 }

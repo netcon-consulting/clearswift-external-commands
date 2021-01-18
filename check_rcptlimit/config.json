@@ -14,7 +14,7 @@
             "detected": { "primary": "hold:Recipient limit" }
         },
         "config": {
-            "recipient_limit": "5"
+            "recipient_limit": { "type": "integer", "description": "maximum number of recipients allowed", "value": "5" }
         }
     }
 }

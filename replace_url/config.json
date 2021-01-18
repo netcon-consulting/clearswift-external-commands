@@ -14,8 +14,8 @@
             "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
         },
         "config": {
-            "name_expression_list": "\"Replace URL\"",
-            "url_replacement": "\"https://www.fsf.org\""
+            "name_expression_list": { "type": "string", "description": "name of lexical expression list with keywords", "value": "\"Replace URL\"" },
+            "url_replacement": { "type": "string", "description": "replacement URL", "value": "\"https://www.fsf.org\"" }
         }
     }
 }
