@@ -14,16 +14,16 @@
             "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
         },
         "config": {
-            "address_tag": { "type": "string", "description": "", "value": "\"[EXT]\"" },
-            "name_domain_list": { "type": "string", "description": "", "value": "\"Internal Domains\"" },
-            "clean_text": { "type": "boolean", "description": "", "value": "true" },
-            "clean_html": { "type": "boolean", "description": "", "value": "true" },
-            "subject_tag": { "type": "string", "description": "", "value": "\"[EXTERNAL]\"" },
-            "text_tag": { "type": "string", "description": "", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
-            "text_top": { "type": "boolean", "description": "", "value": "true" },
-            "html_tag": { "type": "string", "description": "", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
-            "html_top": { "type": "boolean", "description": "", "value": "true" },
-            "html_tag_id": { "type": "string", "description": "", "value": "\"tag_mail_1\"" }
+            "address_tag": { "type": "string", "description": "address tag for from, to and cc headers", "value": "\"[EXT]\"" },
+            "name_domain_list": { "type": "string", "description": "name of address list with internal domains which are excluded from address tagging of to/cc headers; empty string disables to/cc header address tagging", "value": "\"Internal Domains\"" },
+            "clean_text": { "type": "boolean", "description": "on removal also clean address tag from text body", "value": "true" },
+            "clean_html": { "type": "boolean", "description": "on removal also clean address tag from html body", "value": "true" },
+            "subject_tag": { "type": "string", "description": "tag for subject", "value": "\"[EXTERNAL]\"" },
+            "text_tag": { "type": "string", "description": "tag for text body", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
+            "text_top": { "type": "boolean", "description": "insert text tag at top else at the bottom", "value": "true" },
+            "html_tag": { "type": "string", "description": "tag for html body", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
+            "html_top": { "type": "boolean", "description": "insert html tag at top else at the bottom", "value": "true" },
+            "html_tag_id": { "type": "string", "description": "ID of html tag", "value": "\"tag_mail_1\"" }
         }
     },
     "Un-tag mail": {
