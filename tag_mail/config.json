@@ -35,7 +35,7 @@
             "TNEF": [ "not_protected" ],
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-r %FILENAME% %LOGNAME% 'Config - Tag mail'",
+        "parameters": "-r %FILENAME% %LOGNAME% \"Config - Tag mail\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Not modified" },
             "1": { "action": "MODIFIED", "description": "Mail un-tagged" },

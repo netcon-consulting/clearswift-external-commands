@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.2.1
+# replace_url.py V1.2.2
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -136,6 +136,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
+
+    args = parser.parse_args()
 
     try:
         sys.exit(main(args))
