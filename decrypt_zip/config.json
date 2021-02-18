@@ -11,16 +11,19 @@
         },
         "return_codes": {
             "0": { "action": "NONE", "description": "Decryption successful" },
-            "1": { "action": "DETECTED", "description": "Decryption successful but virus found (%LOGTEXT%)" },
-            "2": { "action": "MODIFIED", "description": "Decryption failed" },
+            "1": { "action": "DETECTED", "description": "Problem encountered (%LOGTEXT%)" },
+            "2": { "action": "MODIFIED", "description": "Encryption removed" },
             "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
         },
         "disposal_actions": {
-            "detected": { "primary": "hold:ZIP Virus" },
-            "modified": { "primary": "hold:ZIP decryption failed" }
+            "detected": { "primary": "hold:Decrypt ZIP" }
         },
         "config": {
-            "name_expression_list": { "type": "string", "description": "name of lexical expression list with passwords", "value": "\"Decrypt ZIP passwords\"" }
+            "name_expression_list": { "type": "string", "description": "name of lexical expression list with passwords", "value": "\"Decrypt ZIP passwords\"" },
+            "scan_sophos": { "type": "boolean", "description": "scan contents with Sophos AV", "value": "false" },
+            "scan_kaspersky": { "type": "boolean", "description": "scan contents with Kaspersky AV", "value": "false" },
+            "scan_avira": { "type": "boolean", "description": "scan contents with Avira AV", "value": "false" },
+            "remove_encryption": { "type": "boolean", "description": "remove encryption from ZIP container", "value": "false" }
         }
     }
 }
