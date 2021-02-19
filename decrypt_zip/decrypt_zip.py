@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# decrypt_zip.py V2.0.0
+# decrypt_zip.py V2.0.1
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,11 +10,9 @@ import sys
 
 #########################################################################################
 
-import re
 from pathlib import Path
 from io import BytesIO
 from tempfile import TemporaryDirectory
-from subprocess import run, PIPE, DEVNULL
 import pyzipper
 from netcon import ParserArgs, get_config, write_log, get_expression_list, scan_sophos, scan_kaspersky, scan_avira, CHARSET_UTF8
 
