@@ -12,7 +12,8 @@ Installation of external commands recommended with the install script: https://g
 * check_private: checks sensitivity header for private keyword and that private mails not exceed size limit and have no attachments
 * check_rcptlimit: checks number of recipients (in to and cc headers) against limit
 * check_string: checks raw email text for combination of strings
-* decrypt_zip: attempts to decrypt zip file using a provided list of passwords and if successful scans contents with Sophos AV
+* decrypt_pdf: attempts to decrypt PDF using a provided list of passwords and optionally scans contents with AV and removes encryption
+* decrypt_zip: attempts to decrypt ZIP container using a provided list of passwords and optionally scans contents with AV and removes encryption
 * dmarc_report: parses DMARC xml reports and writes results to syslog
 * encrypt_mail: zip-encrypts email if trigger keyword present in subject header and sends it to recipients and generated password to sender
 * fix_charset: sets charset in meta tag in html body to charset defined in content-type header
