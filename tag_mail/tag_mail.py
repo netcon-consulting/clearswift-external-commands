@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V3.0.3
+# tag_mail.py V3.0.4
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -62,7 +62,12 @@ def main(args):
                 if text_charset is None:
                     text_charset = CHARSET_UTF8
 
-                text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore").replace("\r", "")
+                try:
+                    text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore").replace("\r", "")
+                except:
+                    write_log(args.log, "Cannot decode text part")
+
+                    return ReturnCode.ERROR
 
                 break
 
@@ -77,7 +82,12 @@ def main(args):
                 if html_charset is None:
                     html_charset = CHARSET_UTF8
 
-                html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
+                try:
+                    html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
+                except:
+                    write_log(args.log, "Cannot decode html part")
+
+                    return ReturnCode.ERROR
 
                 break
 
