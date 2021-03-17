@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V3.0.2
+# tag_mail.py V3.0.3
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,12 +10,15 @@ import sys
 
 #########################################################################################
 
+from sys import setrecursionlimit
 import re
 from email.header import decode_header, make_header
 import bs4
 from netcon import ParserArgs, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii, CHARSET_UTF8
 
 DESCRIPTION = "adds and removes tags in address and subject headers and text and html bodies"
+
+RECURSION_LIMIT = 5000
 
 @enum.unique
 class ReturnCode(enum.IntEnum):
@@ -45,6 +48,8 @@ def main(args):
         write_log(args.log, ex)
 
         return ReturnCode.ERROR
+
+    setrecursionlimit(RECURSION_LIMIT)
 
     if config.text_tag or (args.remove and config.address_tag and config.clean_text):
         text_part = None
@@ -198,7 +203,12 @@ def main(args):
                 for tag in list_tag:
                     tag.decompose()
 
-                html_content = str(soup)
+                try:
+                    html_content = str(soup)
+                except:
+                    write_log(args.log, "Error converting soup to string")
+
+                    return ReturnCode.ERROR
 
                 body_modified = True
 
