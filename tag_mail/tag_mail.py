@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V3.0.4
+# tag_mail.py V3.0.5
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,7 +10,6 @@ import sys
 
 #########################################################################################
 
-from sys import setrecursionlimit
 import re
 from email.header import decode_header, make_header
 import bs4
@@ -49,7 +48,7 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    setrecursionlimit(RECURSION_LIMIT)
+    sys.setrecursionlimit(RECURSION_LIMIT)
 
     if config.text_tag or (args.remove and config.address_tag and config.clean_text):
         text_part = None
