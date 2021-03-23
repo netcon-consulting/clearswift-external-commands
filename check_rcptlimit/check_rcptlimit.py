@@ -12,7 +12,7 @@ import sys
 
 from netcon import ParserArgs, get_config, read_email, write_log, extract_email_addresses
 
-DESCRIPTION = "checks number of recipients (in to and cc headers) against limit"
+DESCRIPTION = "check number of recipients (in to and cc headers) against limit"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

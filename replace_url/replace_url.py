@@ -14,7 +14,7 @@ import re
 from bs4 import BeautifulSoup
 from netcon import ParserArgs, get_config, read_email, write_log, get_expression_list, html2text
 
-DESCRIPTION = "replaces URLs in text and html body if one of the keywords is found"
+DESCRIPTION = "replace URLs in text and html body if one of the keywords is found"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

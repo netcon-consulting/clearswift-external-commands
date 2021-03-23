@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 import pyzipper
 from netcon import ParserArgs, get_config, write_log, get_expression_list, scan_sophos, scan_kaspersky, scan_avira, CHARSET_UTF8
 
-DESCRIPTION = "attempts to decrypt ZIP container using a provided list of passwords and optionally scans contents with AV and removes encryption"
+DESCRIPTION = "attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

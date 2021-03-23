@@ -1,7 +1,7 @@
 check_internal.py V1.3.1
 ========================
 
-Checks whether sender IP is in internal networks and sender domain is internal domain.
+Check whether sender IP is in internal networks and sender domain is internal domain.
 
 ## Parameters
 * name_address_list (string): name of CS address list with internal domains

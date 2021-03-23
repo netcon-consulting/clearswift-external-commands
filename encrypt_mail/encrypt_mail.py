@@ -17,7 +17,7 @@ from email.message import EmailMessage
 import smtplib
 from netcon import ParserArgs, get_config, read_email, write_log, zip_encrypt, extract_email_addresses, extract_email_address
 
-DESCRIPTION = "zip-encrypts email if trigger keyword present in subject header and sends it to recipients and generated password to sender"
+DESCRIPTION = "zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):
@@ -58,7 +58,7 @@ def main(args):
 
     keyword_escaped = re.escape(config.keyword_encryption)
 
-    if not re.match(r"^{}".format(keyword_escaped), header_subject, re.I):
+    if not re.match(r"^{}".format(keyword_escaped), header_subject, re.IGNORECASE):
         return ReturnCode.ENCRYPTION_SKIPPED
 
     if "From" not in email:
@@ -99,8 +99,8 @@ def main(args):
         return ReturnCode.ERROR
 
     # remove encryption keyword from subject header
-    email = re.sub(r"(\n|^)Subject: *{} *".format(keyword_escaped), r"\1Subject: ", email.as_string(), count=1, flags=re.I)
-    header_subject = re.sub(r"^{} *".format(keyword_escaped), "", header_subject, flags=re.I)
+    email = re.sub(r"(\n|^)Subject: *{} *".format(keyword_escaped), r"\1Subject: ", email.as_string(), count=1, flags=re.IGNORECASE)
+    header_subject = re.sub(r"^{} *".format(keyword_escaped), "", header_subject, flags=re.IGNORECASE)
 
     password_characters = string.ascii_letters + string.digits
     if config.password_punctuation:

@@ -1,7 +1,7 @@
 decrypt_zip.py V2.0.1
 =====================
 
-Attempts to decrypt ZIP container using a provided list of passwords and optionally scans contents with AV and removes encryption.
+Attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption.
 
 ## Parameters
 * name_expression_list (string): name of lexical expression list with passwords

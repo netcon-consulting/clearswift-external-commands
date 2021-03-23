@@ -1,7 +1,7 @@
 check_private.py V1.1.1
 =======================
 
-Checks sensitivity header for private keyword and that private mails not exceed size limit and have no attachments.
+Check sensitivity header for private keyword and that private mails not exceed size limit and have no attachments.
 
 ## Parameters
 * max_size_kb (integer): maximum mail size for private mails in kB

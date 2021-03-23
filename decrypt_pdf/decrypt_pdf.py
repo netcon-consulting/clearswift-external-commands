@@ -15,7 +15,7 @@ from shutil import copyfile
 import fitz
 from netcon import ParserArgs, get_config, write_log, get_expression_list, scan_sophos, scan_kaspersky, scan_avira
 
-DESCRIPTION = "attempts to decrypt PDF using a provided list of passwords and optionally scans contents with AV and removes encryption"
+DESCRIPTION = "attempt to decrypt PDF using a provided list of passwords and optionally scan contents with AV and removes encryption"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

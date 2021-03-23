@@ -12,7 +12,7 @@ import sys
 
 from netcon import ParserArgs, get_config, read_email, write_log
 
-DESCRIPTION = "checks sensitivity header for private keyword and that private mails not exceed size limit and have no attachments"
+DESCRIPTION = "check sensitivity header for private keyword and that private mails not exceed size limit and have no attachments"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

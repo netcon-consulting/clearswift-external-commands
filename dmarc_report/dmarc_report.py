@@ -15,7 +15,7 @@ from xml.etree import ElementTree
 import syslog
 from netcon import ParserArgs, read_file, write_log
 
-DESCRIPTION = "parses DMARC xml reports and writes results to syslog"
+DESCRIPTION = "parse DMARC xml reports and write results to syslog"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

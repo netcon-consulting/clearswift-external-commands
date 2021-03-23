@@ -14,7 +14,7 @@ import re
 from ipaddress import IPv4Address, IPv4Network
 from netcon import ParserArgs, get_config, read_email, write_log, get_address_list, extract_email_address
 
-DESCRIPTION = "checks whether sender IP is in internal networks and sender domain is internal domain"
+DESCRIPTION = "check whether sender IP is in internal networks and sender domain is internal domain"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

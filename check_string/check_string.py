@@ -12,7 +12,7 @@ import sys
 
 from netcon import ParserArgs, get_config, read_email, write_log
 
-DESCRIPTION = "checks raw email text for combination of strings"
+DESCRIPTION = "check raw email text for combination of strings"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):

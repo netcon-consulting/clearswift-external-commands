@@ -14,7 +14,7 @@ import re
 from email.encoders import encode_quopri, encode_base64
 from netcon import ParserArgs, read_email, write_log
 
-DESCRIPTION = "sets charset in meta tag in html body to charset defined in content-type header"
+DESCRIPTION = "set charset in meta tag in html body to charset defined in content-type header"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):
@@ -50,13 +50,13 @@ def main(args):
             if charset_mime is not None:
                 content = part.get_payload(decode=True).decode(charset_mime, errors="ignore")
 
-                match = re.search(r'<meta [^>]*charset=([^;"> ]+)', content, re.I)
+                match = re.search(r'<meta [^>]*charset=([^;"> ]+)', content, re.IGNORECASE)
 
                 if match:
                     charset_meta = match.group(1).lower()
 
                     if (charset_meta != charset_mime):
-                        content = re.sub(r"(<meta [^>]*charset=)({})".format(charset_meta), r"\1{}".format(charset_mime), content, re.I)
+                        content = re.sub(r"(<meta [^>]*charset=)({})".format(charset_meta), r"\1{}".format(charset_mime), content, re.IGNORECASE)
 
                         part.set_payload(content.encode(charset_mime))
 

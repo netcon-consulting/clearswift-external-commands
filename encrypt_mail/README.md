@@ -1,7 +1,7 @@
 encrypt_mail.py V1.5.1
 ======================
 
-Zip-encrypts email if trigger keyword present in subject header and sends it to recipients and generated password to sender.
+Zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender.
 
 ## Parameters
 * keyword_encryption (string): trigger keyword in subject header

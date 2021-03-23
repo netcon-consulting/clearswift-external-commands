@@ -1,7 +1,7 @@
 replace_url.py V1.2.2
 =====================
 
-Replaces URLs in text and html body if one of the keywords is found.
+Replace URLs in text and html body if one of the keywords is found.
 
 ## Parameters
 * name_expression_list (string): name of lexical expression list with keywords

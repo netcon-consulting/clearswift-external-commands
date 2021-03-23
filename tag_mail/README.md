@@ -1,7 +1,7 @@
 tag_mail.py V3.0.5
 ==================
 
-Adds and removes tags in address and subject headers and text and html bodies.
+Add and remove tags in address and subject headers and text and html bodies.
 
 ## Parameters
 * address_tag (string): address tag for from, to and cc headers

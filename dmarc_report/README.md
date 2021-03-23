@@ -1,7 +1,7 @@
 dmarc_report.py V1.0.2
 ======================
 
-Parses DMARC xml reports and writes results to syslog.
+Parse DMARC xml reports and write results to syslog.
 
 ## Notes
 Requires syslog-ng configuration /etc/syslog-ng/conf.d/dmarc_report.conf:

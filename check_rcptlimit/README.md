@@ -1,7 +1,7 @@
 check_rcptlimit.py V1.3.1
 =========================
 
-Checks number of recipients (in to and cc headers) against limit.
+Check number of recipients (in to and cc headers) against limit.
 
 ## Parameters
 * recipient_limit (integer): maximum number of recipients allowed

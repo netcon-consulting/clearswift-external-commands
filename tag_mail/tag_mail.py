@@ -15,7 +15,7 @@ from email.header import decode_header, make_header
 import bs4
 from netcon import ParserArgs, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii, CHARSET_UTF8
 
-DESCRIPTION = "adds and removes tags in address and subject headers and text and html bodies"
+DESCRIPTION = "add and remove tags in address and subject headers and text and html bodies"
 
 RECURSION_LIMIT = 5000
 
