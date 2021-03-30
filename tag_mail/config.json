@@ -10,8 +10,12 @@
         },
         "return_codes": {
             "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "MODIFIED", "description": "Mail tagged" },
+            "1": { "action": "DETECTED", "description": "Invalid encoding (%LOGTEXT%)" },
+            "2": { "action": "MODIFIED", "description": "Mail tagged" },
             "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Tag mail" }
         },
         "config": {
             "address_tag": { "type": "string", "description": "address tag for from, to and cc headers", "value": "\"[EXT]\"" },
@@ -38,8 +42,12 @@
         "parameters": "-r %FILENAME% %LOGNAME% \"Config - Tag mail\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "MODIFIED", "description": "Mail un-tagged" },
+            "1": { "action": "DETECTED", "description": "Invalid encoding (%LOGTEXT%)" },
+            "2": { "action": "MODIFIED", "description": "Mail un-tagged" },
             "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Tag mail" }
         }
     }
 }

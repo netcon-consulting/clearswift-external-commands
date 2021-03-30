@@ -1,4 +1,4 @@
-tag_mail.py V3.0.5
+tag_mail.py V4.0.0
 ==================
 
 Add and remove tags in address and subject headers and text and html bodies.
@@ -17,3 +17,6 @@ Add and remove tags in address and subject headers and text and html bodies.
 
 ## Address lists
 * Internal domains: list of internal domains
+
+## Hold Areas
+* Tag mail: mails with invalid character encoding

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V3.0.5
+# tag_mail.py V4.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -25,12 +25,14 @@ class ReturnCode(enum.IntEnum):
     Return codes.
 
     0   - email not modified
-    1   - tag(s) added
+    1   - invalid character encoding
+    2   - tag(s) added
     99  - error
     255 - unhandled exception
     """
     NOT_MODIFIED = 0
-    TAG_ADDED = 1
+    INVALID_ENCODING = 1
+    TAG_ADDED = 2
     ERROR = 99
     EXCEPTION = 255
 
@@ -66,7 +68,7 @@ def main(args):
                 except:
                     write_log(args.log, "Cannot decode text part")
 
-                    return ReturnCode.ERROR
+                    return ReturnCode.INVALID_ENCODING
 
                 break
 
@@ -86,7 +88,7 @@ def main(args):
                 except:
                     write_log(args.log, "Cannot decode html part")
 
-                    return ReturnCode.ERROR
+                    return ReturnCode.INVALID_ENCODING
 
                 break
 
