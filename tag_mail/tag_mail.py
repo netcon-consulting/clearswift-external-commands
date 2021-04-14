@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V4.0.0
+# tag_mail.py V4.0.1
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -13,7 +13,7 @@ import sys
 import re
 from email.header import decode_header, make_header
 import bs4
-from netcon import ParserArgs, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii, CHARSET_UTF8
+from netcon import ParserArgs, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii, python_charset, CHARSET_UTF8
 
 DESCRIPTION = "add and remove tags in address and subject headers and text and html bodies"
 
@@ -58,7 +58,7 @@ def main(args):
         for part in email.walk():
             if part.get_content_type() == "text/plain":
                 text_part = part
-                text_charset = text_part.get_content_charset()
+                text_charset = python_charset(text_part.get_content_charset())
 
                 if text_charset is None:
                     text_charset = CHARSET_UTF8
@@ -66,7 +66,7 @@ def main(args):
                 try:
                     text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore").replace("\r", "")
                 except:
-                    write_log(args.log, "Cannot decode text part")
+                    write_log(args.log, "Cannot decode text part with charset '{}'".format(text_charset))
 
                     return ReturnCode.INVALID_ENCODING
 
@@ -78,7 +78,7 @@ def main(args):
         for part in email.walk():
             if part.get_content_type() == "text/html":
                 html_part = part
-                html_charset = html_part.get_content_charset()
+                html_charset = python_charset(html_part.get_content_charset())
 
                 if html_charset is None:
                     html_charset = CHARSET_UTF8
@@ -86,7 +86,7 @@ def main(args):
                 try:
                     html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
                 except:
-                    write_log(args.log, "Cannot decode html part")
+                    write_log(args.log, "Cannot decode html part with charset '{}'".format(html_charset))
 
                     return ReturnCode.INVALID_ENCODING
 
@@ -106,7 +106,7 @@ def main(args):
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                    header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                     list_address = extract_addresses(header)
 
@@ -158,7 +158,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # remove subject tag
 
-            header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
+            header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
 
             match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
@@ -215,7 +215,7 @@ def main(args):
                     tag.decompose()
 
                 try:
-                    html_content = str(soup)
+                    html_content = soup.encode(html_charset).decode(html_charset)
                 except:
                     write_log(args.log, "Error converting soup to string")
 
@@ -243,7 +243,7 @@ def main(args):
 
             pattern_quote = re.compile(r'^".*"$')
 
-            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
+            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
 
             if list_address:
                 (prefix, address, suffix) = list_address[0]
@@ -297,7 +297,7 @@ def main(args):
 
                 for header_keyword in [ "To", "Cc" ]:
                     if header_keyword in email:
-                        header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                        header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
 
                         list_address = extract_addresses(header)
 
@@ -360,7 +360,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # add subject tag
 
-            header = "".join([ part if isinstance(part, str) else part.decode(encoding, errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
+            header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
 
             if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
                 header = "{} {}".format(config.subject_tag, header)
