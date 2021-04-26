@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V4.0.1
+# tag_mail.py V4.1.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -56,7 +56,7 @@ def main(args):
         text_part = None
 
         for part in email.walk():
-            if part.get_content_type() == "text/plain":
+            if part.get_content_type() == "text/plain" and not part.is_attachment():
                 text_part = part
                 text_charset = python_charset(text_part.get_content_charset())
 
@@ -76,7 +76,7 @@ def main(args):
         html_part = None
 
         for part in email.walk():
-            if part.get_content_type() == "text/html":
+            if part.get_content_type() == "text/html" and not part.is_attachment():
                 html_part = part
                 html_charset = python_charset(html_part.get_content_charset())
 

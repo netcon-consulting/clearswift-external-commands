@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_private.py V1.1.1
+# check_private.py V1.2.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -50,14 +50,10 @@ def main(args):
             return ReturnCode.INVALID
 
         for part in email.walk():
-            content_disposition = part.get_params(header="Content-Disposition")
+            if part.is_attachment():
+                write_log(args.log, "Mail has attachment")
 
-            if content_disposition:
-                for (key, _) in content_disposition:
-                    if key == "attachment":
-                        write_log(args.log, "Mail has attachment")
-
-                        return ReturnCode.INVALID
+                return ReturnCode.INVALID
 
         return ReturnCode.PRIVATE
 
