@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# decrypt_pdf_file.py V1.0.0
+# decrypt_pdf_file.py V1.0.1
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -58,7 +58,7 @@ def main(args):
 
     try:
         pdf_file = fitz.open(args.input)
-    except:
+    except Exception:
         write_log(args.log, "Cannot open PDF file '{}'".format(args.input))
 
         return ReturnCode.ERROR

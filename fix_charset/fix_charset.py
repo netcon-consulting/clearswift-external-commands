@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# fix_charset.py V1.1.1
+# fix_charset.py V1.1.2
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -75,7 +75,7 @@ def main(args):
                         try:
                             with open(args.input, "wb") as f:
                                 f.write(email.as_bytes())
-                        except:
+                        except Exception:
                             write_log(args.log, "Error writing '{}'".format(args.input))
 
                             return ReturnCode.ERROR

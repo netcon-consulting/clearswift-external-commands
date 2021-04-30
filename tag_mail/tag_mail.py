@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V4.1.0
+# tag_mail.py V4.1.1
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -65,7 +65,7 @@ def main(args):
 
                 try:
                     text_content = text_part.get_payload(decode=True).decode(text_charset, errors="ignore").replace("\r", "")
-                except:
+                except Exception:
                     write_log(args.log, "Cannot decode text part with charset '{}'".format(text_charset))
 
                     return ReturnCode.INVALID_ENCODING
@@ -85,7 +85,7 @@ def main(args):
 
                 try:
                     html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
-                except:
+                except Exception:
                     write_log(args.log, "Cannot decode html part with charset '{}'".format(html_charset))
 
                     return ReturnCode.INVALID_ENCODING
@@ -216,7 +216,7 @@ def main(args):
 
                 try:
                     html_content = soup.encode(html_charset).decode(html_charset)
-                except:
+                except Exception:
                     write_log(args.log, "Error converting soup to string")
 
                     return ReturnCode.ERROR
@@ -427,7 +427,7 @@ def main(args):
         try:
             with open(args.input, "wb") as f:
                 f.write(email.as_bytes())
-        except:
+        except Exception:
             write_log(args.log, "Error writing '{}'".format(args.input))
 
             return ReturnCode.ERROR

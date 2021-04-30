@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# decrypt_zip.py V2.0.1
+# decrypt_zip.py V2.0.2
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -94,7 +94,7 @@ def main(args):
                         try:
                             with open(path_file, "wb") as f:
                                 f.write(data)
-                        except:
+                        except Exception:
                             write_log(args.log, "Cannot extract file '{}'".format(file_name))
 
                             return ReturnCode.ERROR

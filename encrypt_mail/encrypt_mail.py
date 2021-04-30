@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.5.1
+# encrypt_mail.py V1.5.2
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -109,7 +109,7 @@ def main(args):
 
     try:
         zip_archive = zip_encrypt({ ("email.eml", email) }, password)
-    except:
+    except Exception:
         write_log(args.log, "Error zip-encrypting email")
 
         return ReturnCode.ERROR
@@ -127,7 +127,7 @@ def main(args):
     try:
         with smtplib.SMTP("localhost", port=PORT_SMTP) as s:
             s.send_message(email_message)
-    except:
+    except Exception:
         write_log(args.log, "Cannot send recipient email")
 
         return ReturnCode.ERROR
@@ -142,7 +142,7 @@ def main(args):
     try:
         with smtplib.SMTP("localhost", port=PORT_SMTP) as s:
             s.send_message(email_message)
-    except:
+    except Exception:
         write_log(args.log, "Cannot send sender email")
 
     return ReturnCode.MAIL_ENCRYPTED

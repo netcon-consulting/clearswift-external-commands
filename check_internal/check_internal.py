@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_internal.py V1.3.1
+# check_internal.py V1.3.2
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -66,7 +66,7 @@ def main(args):
 
     try:
         ipv4_address = IPv4Address(sender_ip)
-    except:
+    except Exception:
         write_log(args.log, "Invalid sender IP")
 
         return ReturnCode.ERROR
@@ -74,7 +74,7 @@ def main(args):
     for network in config.internal_networks:
         try:
             ipv4_network = IPv4Network(network)
-        except:
+        except Exception:
             write_log(args.log, "Invalid CIDR '{}'".format(network))
 
             return ReturnCode.ERROR

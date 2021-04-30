@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# dmarc_report.py V1.0.2
+# dmarc_report.py V1.0.3
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -44,14 +44,14 @@ def main(args):
 
     try:
         syslog.openlog("dmarc_report", facility=syslog.LOG_MAIL)
-    except:
+    except Exception:
         write_log(args.log, "Cannot connect to syslog")
 
         return ReturnCode.ERROR
 
     try:
         tree = ElementTree.fromstring(xml_report)
-    except:
+    except Exception:
         write_log(args.log, "Cannot parse xml")
 
         return ReturnCode.ERROR
