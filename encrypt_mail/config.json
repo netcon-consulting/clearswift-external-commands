@@ -1,8 +1,6 @@
 {
     "Encrypt mail": {
         "media_types": {
-            "OUTLOOK": [ "not_protected" ],
-            "TNEF": [ "not_protected" ],
             "SMTP": [ "not_protected" ]
         },
         "timeout": 120,
