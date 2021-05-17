@@ -12,7 +12,11 @@
             "URL whitelist"
         ],
         "media_types": {
-            "ZIP": [ "encrypted" ]
+            "GIF": [ ],
+            "JPEG": [ ],
+            "BMP": [ ],
+            "PNG": [ ],
+            "TIFF": [ ]
         },
         "return_codes": {
             "0": { "action": "NONE", "description": "No QR-code with URL or URLs not malicious" },
