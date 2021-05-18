@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V4.1.1
+# tag_mail.py V5.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -15,7 +15,7 @@ from email.header import decode_header, make_header
 import bs4
 from netcon import ParserArgs, get_config, read_email, write_log, end_escape, extract_addresses, get_address_list, string_ascii, python_charset, CHARSET_UTF8
 
-DESCRIPTION = "add and remove tags in address and subject headers and text and html bodies"
+DESCRIPTION = "add and remove tags in address and subject headers, text and html bodies and calendar objects"
 
 RECURSION_LIMIT = 5000
 
@@ -26,7 +26,7 @@ class ReturnCode(enum.IntEnum):
 
     0   - email not modified
     1   - invalid character encoding
-    2   - tag(s) added
+    2   - tag(s) added/removed
     99  - error
     255 - unhandled exception
     """
@@ -36,7 +36,7 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id" )
+CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id", "calendar_tag" )
 
 def main(args):
     HEADER_CTE = "Content-Transfer-Encoding"
@@ -87,6 +87,26 @@ def main(args):
                     html_content = html_part.get_payload(decode=True).decode(html_charset, errors="ignore")
                 except Exception:
                     write_log(args.log, "Cannot decode html part with charset '{}'".format(html_charset))
+
+                    return ReturnCode.INVALID_ENCODING
+
+                break
+
+    if config.calendar_tag:
+        calender_part = None
+
+        for part in email.walk():
+            if part.get_content_type() == "text/calendar" and not part.is_attachment():
+                calendar_part = part
+                calendar_charset = python_charset(calendar_part.get_content_charset())
+
+                if calendar_charset is None:
+                    calendar_charset = CHARSET_UTF8
+
+                try:
+                    calendar_content = calendar_part.get_payload(decode=True).decode(calendar_charset, errors="ignore")
+                except Exception:
+                    write_log(args.log, "Cannot decode calendar part with charset '{}'".format(calendar_charset))
 
                     return ReturnCode.INVALID_ENCODING
 
@@ -162,7 +182,7 @@ def main(args):
 
             match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
-            if match:
+            if match is not None:
                 del email["Subject"]
                 email["Subject"] = header[:match.start()] + header[match.end():]
 
@@ -183,7 +203,7 @@ def main(args):
 
                 match = re.search(pattern_tag, text_content)
 
-                if match:
+                if match is not None:
                     text_content = re.sub(pattern_tag, "", text_content)
 
                     body_modified = True
@@ -235,6 +255,29 @@ def main(args):
                 html_part.set_payload(html_content, charset=html_charset)
 
                 email_modified = True
+
+        if config.calendar_tag and calendar_part is not None:
+            # remove calendar tag
+
+            match = re.search(r"\nORGANIZER;CN=([^:;\r\n]+)", calendar_content)
+
+            if match is not None:
+                organizer = match.group(1)
+                organizer_start = match.start() + 14
+                organizer_end = match.end()
+
+                match = re.search(r"^{} ".format(re.escape(config.calendar_tag)), organizer)
+
+                if match is not None:
+                    if HEADER_CTE in calendar_part:
+                        del calendar_part[HEADER_CTE]
+
+                    if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
+                        calendar_charset = CHARSET_UTF8
+
+                    calendar_part.set_payload(calendar_content[:organizer_start] + organizer[match.end():] + calendar_content[organizer_end:], charset=calendar_charset)
+
+                    email_modified = True
     else:
         if config.address_tag and "From" in email:
             # add address tag
@@ -394,16 +437,15 @@ def main(args):
             if config.html_top:
                 match = re.search(r"<body[^>]*>", html_content)
 
-                if match:
-                    index = match.end(0)
+                if match is not None:
+                    index = match.end()
                 else:
                     match = re.search(r"<html[^>]*>", html_content)
 
-                    if match:
-                        index = match.end(0)
+                    if match is not None:
+                        index = match.end()
                     else:
                         index = 0
-
             else:
                 index = html_content.find("</body>")
 
@@ -422,6 +464,25 @@ def main(args):
             html_part.set_payload(html_content[:index] + '<div id="{}">{}</div>'.format(config.html_tag_id, config.html_tag) + html_content[index:], charset=html_charset)
 
             email_modified = True
+
+        if config.calendar_tag and calendar_part is not None:
+            # add calendar tag
+
+            match = re.search(r"\nORGANIZER;CN=([^:;\r\n]+)", calendar_content)
+
+            if match is not None:
+                organizer = match.group(1)
+
+                if not re.search(r"^{} ".format(re.escape(config.calendar_tag)), organizer):
+                    if HEADER_CTE in calendar_part:
+                        del calendar_part[HEADER_CTE]
+
+                    if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
+                        calendar_charset = CHARSET_UTF8
+
+                    calendar_part.set_payload(calendar_content[:match.start() + 14] + config.calendar_tag + " " + organizer + calendar_content[match.end():], charset=calendar_charset)
+
+                    email_modified = True
 
     if email_modified:
         try:

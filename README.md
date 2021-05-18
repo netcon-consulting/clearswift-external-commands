@@ -19,4 +19,4 @@ Installation of external commands recommended with the install script: https://g
 * encrypt_mail: zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender
 * fix_charset: set charset in meta tag in html body to charset defined in content-type header
 * replace_url: replace URLs in text and html body if one of the keywords is found
-* tag_mail: add and remove tags in address and subject headers and text and html bodies
+* tag_mail: add and remove tags in address and subject headers, text and html bodies and calendar objects

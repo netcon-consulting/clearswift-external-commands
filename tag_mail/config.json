@@ -25,7 +25,8 @@
             "text_top": { "type": "boolean", "description": "insert text tag at top else at the bottom", "value": "true" },
             "html_tag": { "type": "string", "description": "tag for html body", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
             "html_top": { "type": "boolean", "description": "insert html tag at top else at the bottom", "value": "true" },
-            "html_tag_id": { "type": "string", "description": "ID of html tag", "value": "\"tag_mail_1\"" }
+            "html_tag_id": { "type": "string", "description": "ID of html tag", "value": "\"tag_mail_1\"" },
+            "calendar_tag": { "type": "string", "description": "calendar tag for organizer field", "value": "\"[EXT]\"" }
         }
     },
     "Un-tag mail": {
