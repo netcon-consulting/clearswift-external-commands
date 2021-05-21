@@ -6,6 +6,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
+        "parameters": "%FILENAME% %LOGNAME% \"Config - Check internal\" \"%ITEMTYPE%\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "External sender" },
             "1": { "action": "DETECTED", "description": "Internal sender" },

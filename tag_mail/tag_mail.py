@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V5.0.0
+# tag_mail.py V6.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -93,7 +93,7 @@ def main(args):
                 break
 
     if config.calendar_tag:
-        calender_part = None
+        calendar_part = None
 
         for part in email.walk():
             if part.get_content_type() == "text/calendar" and not part.is_attachment():
@@ -501,9 +501,14 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ParserArgs(DESCRIPTION, config=True)
+    parser.add_argument("type", metavar="TYPE", type=str, help="message part type")
     parser.add_argument("-r", "--remove", action="store_true", help="remove tags")
 
     args = parser.parse_args()
+
+    if args.type != "Message":
+        # skip embedded/attached SMTP messages
+        sys.exit(ReturnCode.NOT_MODIFIED)
 
     try:
         sys.exit(main(args))

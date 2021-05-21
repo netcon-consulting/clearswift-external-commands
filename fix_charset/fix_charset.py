@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# fix_charset.py V1.1.2
+# fix_charset.py V2.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -47,30 +47,21 @@ def main(args):
         if part.get_content_type() == "text/html":
             charset_mime = part.get_content_charset()
 
-            if charset_mime is not None:
+            if charset_mime:
                 content = part.get_payload(decode=True).decode(charset_mime, errors="ignore")
 
-                match = re.search(r'<meta [^>]*charset=([^;"> ]+)', content, re.IGNORECASE)
+                match = re.search(r"<meta [^>]*charset=\"?([^;\"> ]+)", content, flags=re.IGNORECASE)
 
-                if match:
+                if match is not None:
                     charset_meta = match.group(1).lower()
 
-                    if (charset_meta != charset_mime):
-                        content = re.sub(r"(<meta [^>]*charset=)({})".format(charset_meta), r"\1{}".format(charset_mime), content, re.IGNORECASE)
-
-                        part.set_payload(content.encode(charset_mime))
+                    if charset_mime != charset_meta:
+                        content = re.sub(r"(<meta [^>]*charset=\"?)({})".format(charset_meta), r"\1{}".format(charset_mime), content, flags=re.IGNORECASE)
 
                         if HEADER_CTE in part:
-                            cte = part.get(HEADER_CTE).lower()
+                            del part[HEADER_CTE]
 
-                            if (cte == "quoted-printable"):
-                                del part[HEADER_CTE]
-
-                                encode_quopri(part)
-                            elif (cte == "base64"):
-                                del part[HEADER_CTE]
-
-                                encode_base64(part)
+                        part.set_payload(content, charset=charset_mime)
 
                         try:
                             with open(args.input, "wb") as f:
@@ -88,8 +79,13 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
+    parser.add_argument("type", metavar="TYPE", type=str, help="message part type")
 
     args = parser.parse_args()
+
+    if args.type != "Message":
+        # skip embedded/attached SMTP messages
+        sys.exit(ReturnCode.NOT_MODIFIED)
 
     try:
         sys.exit(main(args))

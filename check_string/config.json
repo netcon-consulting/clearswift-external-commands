@@ -3,6 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
+        "parameters": "%FILENAME% %LOGNAME% \"Config - Check string\" \"%ITEMTYPE%\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Not found" },
             "1": { "action": "DETECTED", "description": "String found" },

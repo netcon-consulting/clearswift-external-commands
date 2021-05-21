@@ -3,6 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
+        "parameters": "%FILENAME% %LOGNAME% \"Config - Check private\" \"%ITEMTYPE%\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Private" },
             "1": { "action": "DETECTED", "description": "Not private" },

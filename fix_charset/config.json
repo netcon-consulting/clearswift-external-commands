@@ -3,6 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
+        "parameters": "%FILENAME% %LOGNAME% \"%ITEMTYPE%\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Not modified" },
             "1": { "action": "MODIFIED", "description": "Charset changed" },

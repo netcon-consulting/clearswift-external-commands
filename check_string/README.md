@@ -1,4 +1,4 @@
-check_string.py V1.3.1
+check_string.py V2.0.0
 ======================
 
 Check raw email text for combination of strings.

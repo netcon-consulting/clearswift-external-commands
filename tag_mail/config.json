@@ -6,6 +6,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
+        "parameters": "%FILENAME% %LOGNAME% \"Config - Tag mail\" \"%ITEMTYPE%\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Not modified" },
             "1": { "action": "DETECTED", "description": "Invalid encoding (%LOGTEXT%)" },
@@ -36,7 +37,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-r %FILENAME% %LOGNAME% \"Config - Tag mail\"",
+        "parameters": "-r %FILENAME% %LOGNAME% \"Config - Tag mail\" \"%ITEMTYPE%\"",
         "return_codes": {
             "0": { "action": "NONE", "description": "Not modified" },
             "1": { "action": "DETECTED", "description": "Invalid encoding (%LOGTEXT%)" },

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V1.2.3
+# replace_url.py V2.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -136,8 +136,13 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
+    parser.add_argument("type", metavar="TYPE", type=str, help="message part type")
 
     args = parser.parse_args()
+
+    if args.type != "Message":
+        # skip embedded/attached SMTP messages
+        sys.exit(ReturnCode.NOT_MODIFIED)
 
     try:
         sys.exit(main(args))
