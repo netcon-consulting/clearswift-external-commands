@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V6.0.0
+# tag_mail.py V6.1.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -37,6 +37,8 @@ class ReturnCode(enum.IntEnum):
     EXCEPTION = 255
 
 CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id", "calendar_tag" )
+
+CODE_SKIPPED = ReturnCode.NOT_MODIFIED
 
 def main(args):
     HEADER_CTE = "Content-Transfer-Encoding"
@@ -500,15 +502,14 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, config=True)
-    parser.add_argument("type", metavar="TYPE", type=str, help="message part type")
+    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
     parser.add_argument("-r", "--remove", action="store_true", help="remove tags")
 
     args = parser.parse_args()
 
-    if args.type != "Message":
+    if CODE_SKIPPED is not None and args.type != "Message":
         # skip embedded/attached SMTP messages
-        sys.exit(ReturnCode.NOT_MODIFIED)
+        sys.exit(CODE_SKIPPED)
 
     try:
         sys.exit(main(args))

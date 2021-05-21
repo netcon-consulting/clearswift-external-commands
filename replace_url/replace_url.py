@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# replace_url.py V2.0.0
+# replace_url.py V2.1.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -32,6 +32,8 @@ class ReturnCode(enum.IntEnum):
     EXCEPTION = 255
 
 CONFIG_PARAMETERS = ( "name_expression_list", "url_replacement" )
+
+CODE_SKIPPED = ReturnCode.NOT_MODIFIED
 
 PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)([\s>)\]}\"]|$)+", re.IGNORECASE)
 
@@ -135,14 +137,13 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
-    parser.add_argument("type", metavar="TYPE", type=str, help="message part type")
+    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
 
     args = parser.parse_args()
 
-    if args.type != "Message":
+    if CODE_SKIPPED is not None and args.type != "Message":
         # skip embedded/attached SMTP messages
-        sys.exit(ReturnCode.NOT_MODIFIED)
+        sys.exit(CODE_SKIPPED)
 
     try:
         sys.exit(main(args))

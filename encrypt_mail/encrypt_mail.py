@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# encrypt_mail.py V1.5.2
+# encrypt_mail.py V2.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -35,6 +35,8 @@ class ReturnCode(enum.IntEnum):
     EXCEPTION = 255
 
 CONFIG_PARAMETERS = ( "keyword_encryption", "password_length", "password_punctuation" )
+
+CODE_SKIPPED = ReturnCode.ENCRYPTION_SKIPPED
 
 MESSAGE_RECIPIENT="You have received an encrypted email from {} attached to this email.\n\nThe password will be provided to you by the sender shortly.\n\nHave a nice day."
 MESSAGE_SENDER="The email has been encrypted with the password {} and sent.\n\nPlease provide the recipients with the password.\n\nHave a nice day."
@@ -150,9 +152,13 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
+    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
 
     args = parser.parse_args()
+
+    if CODE_SKIPPED is not None and args.type != "Message":
+        # skip embedded/attached SMTP messages
+        sys.exit(CODE_SKIPPED)
 
     try:
         sys.exit(main(args))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# dmarc_report.py V1.0.3
+# dmarc_report.py V1.1.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -31,6 +31,8 @@ class ReturnCode(enum.IntEnum):
     EXCEPTION = 255
 
 CONFIG_PARAMETERS = ( )
+
+CODE_SKIPPED = None
 
 TEMPLATE_SYSLOG = Template("org=$name_org, id=$id_report, begin=$date_begin, end=$date_end, domain=$domain, ip=$ip_source, count=$count, disposition=$disposition, dkim=$dkim, spf=$spf")
 
@@ -111,9 +113,13 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
+    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
 
     args = parser.parse_args()
+
+    if CODE_SKIPPED is not None and args.type != "Message":
+        # skip embedded/attached SMTP messages
+        sys.exit(CODE_SKIPPED)
 
     try:
         sys.exit(main(args))

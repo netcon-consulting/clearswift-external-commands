@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_private.py V2.0.0
+# check_private.py V2.1.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -33,6 +33,8 @@ class ReturnCode(enum.IntEnum):
 
 CONFIG_PARAMETERS = ( "max_size_kb", )
 
+CODE_SKIPPED = ReturnCode.PRIVATE
+
 def main(args):
     try:
         config = get_config(args.config, CONFIG_PARAMETERS)
@@ -62,14 +64,13 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
-    parser.add_argument("type", metavar="TYPE", type=str, help="message part type")
+    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
 
     args = parser.parse_args()
 
-    if args.type != "Message":
+    if CODE_SKIPPED is not None and args.type != "Message":
         # skip embedded/attached SMTP messages
-        sys.exit(ReturnCode.PRIVATE)
+        sys.exit(CODE_SKIPPED)
 
     try:
         sys.exit(main(args))

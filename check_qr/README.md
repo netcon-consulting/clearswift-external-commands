@@ -1,4 +1,4 @@
-check_qr.py V1.0.1
+check_qr.py V1.1.0
 ==================
 
 Check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists.

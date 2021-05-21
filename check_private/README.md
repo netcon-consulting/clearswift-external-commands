@@ -1,4 +1,4 @@
-check_private.py V2.0.0
+check_private.py V2.1.0
 =======================
 
 Check sensitivity header for private keyword and that private mails not exceed size limit and have no attachments.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# decrypt_pdf_file.py V1.0.1
+# decrypt_pdf_file.py V1.1.0
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -35,6 +35,8 @@ class ReturnCode(enum.IntEnum):
     EXCEPTION = 255
 
 CONFIG_PARAMETERS = ( "name_expression_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
+
+CODE_SKIPPED = None
 
 def main(args):
     try:
@@ -118,9 +120,13 @@ def main(args):
 #########################################################################################
 
 if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, config=bool(CONFIG_PARAMETERS))
+    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
 
     args = parser.parse_args()
+
+    if CODE_SKIPPED is not None and args.type != "Message":
+        # skip embedded/attached SMTP messages
+        sys.exit(CODE_SKIPPED)
 
     try:
         sys.exit(main(args))
