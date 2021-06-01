@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V6.1.0
+# tag_mail.py V6.1.1
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -261,12 +261,12 @@ def main(args):
         if config.calendar_tag and calendar_part is not None:
             # remove calendar tag
 
-            match = re.search(r"\nORGANIZER;CN=([^:;\r\n]+)", calendar_content)
+            match = re.search(r"\nORGANIZER;.*CN=([^:;\r\n]+)", calendar_content)
 
             if match is not None:
                 organizer = match.group(1)
-                organizer_start = match.start() + 14
-                organizer_end = match.end()
+                organizer_start = match.start(1)
+                organizer_end = match.end(1)
 
                 match = re.search(r"^{} ".format(re.escape(config.calendar_tag)), organizer)
 
@@ -470,7 +470,7 @@ def main(args):
         if config.calendar_tag and calendar_part is not None:
             # add calendar tag
 
-            match = re.search(r"\nORGANIZER;CN=([^:;\r\n]+)", calendar_content)
+            match = re.search(r"\nORGANIZER;.*CN=([^:;\r\n]+)", calendar_content)
 
             if match is not None:
                 organizer = match.group(1)
@@ -482,7 +482,7 @@ def main(args):
                     if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
                         calendar_charset = CHARSET_UTF8
 
-                    calendar_part.set_payload(calendar_content[:match.start() + 14] + config.calendar_tag + " " + organizer + calendar_content[match.end():], charset=calendar_charset)
+                    calendar_part.set_payload(calendar_content[:match.start(1)] + config.calendar_tag + " " + organizer + calendar_content[match.end(1):], charset=calendar_charset)
 
                     email_modified = True
 

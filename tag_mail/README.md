@@ -1,4 +1,4 @@
-tag_mail.py V6.1.0
+tag_mail.py V6.1.1
 ==================
 
 Add and remove tags in address and subject headers, text and html bodies and calendar objects.
