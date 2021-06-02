@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_custom.py V1.0.1
+# check_custom.py V2.0.0
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,7 +10,7 @@ import sys
 
 #########################################################################################
 
-from netcon import ParserArgs, get_config, read_email, write_log
+from netcon import ParserArgs, get_config, read_email, write_log, get_expression_list
 
 DESCRIPTION = "check email with configurable custom function"
 
@@ -29,7 +29,7 @@ class ReturnCode(enum.IntEnum):
     ERROR = 99
     EXCEPTION = 255
 
-CONFIG_PARAMETERS = ( "check_function", )
+CONFIG_PARAMETERS = ( "name_expression_list", )
 
 CODE_SKIPPED = ReturnCode.NOT_DETECTED
 
@@ -44,7 +44,14 @@ def main(args):
         return ReturnCode.ERROR
 
     try:
-        exec(config.check_function, globals())
+        check_function = get_expression_list(config.name_expression_list).pop()
+    except Exception as ex:
+        write_log(args.log, ex)
+
+        return ReturnCode.ERROR
+
+    try:
+        exec(check_function, globals())
 
         return check_email(email, args.log)
     except Exception as ex:
