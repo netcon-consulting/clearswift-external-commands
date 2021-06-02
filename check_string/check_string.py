@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_string.py V2.1.0
+# check_string.py V2.1.1
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,9 +10,9 @@ import sys
 
 #########################################################################################
 
-from netcon import ParserArgs, get_config, read_email, write_log
+from netcon import ParserArgs, get_config, read_email, write_log, CHARSET_UTF8
 
-DESCRIPTION = "check raw email text for combination of strings"
+DESCRIPTION = "check raw email data for combination of strings"
 
 @enum.unique
 class ReturnCode(enum.IntEnum):
@@ -43,11 +43,11 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    email = email.as_string()
+    email = email.as_bytes()
 
     for list_string in config.search_strings:
         for string in list_string:
-            if email.find(string) == -1:
+            if email.find(string.encode(CHARSET_UTF8)) == -1:
                 break
         else:
             return ReturnCode.STRING_FOUND

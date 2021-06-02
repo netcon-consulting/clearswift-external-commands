@@ -1,7 +1,7 @@
-check_string.py V2.1.0
+check_string.py V2.1.1
 ======================
 
-Check raw email text for combination of strings.
+Check raw email data for combination of strings.
 
 ## Parameters
 * search_strings (list of list of strings): list of string combinations to search
