@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# check_custom.py V1.0.0
+# check_custom.py V1.0.1
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -44,7 +44,7 @@ def main(args):
         return ReturnCode.ERROR
 
     try:
-        exec(config.check_function)
+        exec(config.check_function, globals())
 
         return check_email(email, args.log)
     except Exception as ex:

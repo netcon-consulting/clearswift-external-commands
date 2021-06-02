@@ -1,4 +1,4 @@
-check_custom.py V1.0.0
+check_custom.py V1.0.1
 ======================
 
 Check email with configurable custom function.
