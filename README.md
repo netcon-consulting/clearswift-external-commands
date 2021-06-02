@@ -8,12 +8,12 @@ Collection of external commands for Clearswift SEG 5.
 Installation of external commands recommended with the install script: https://github.com/netcon-consulting/external_commands
 
 ## External commands
+* check_custom: check email with configurable custom function
 * check_internal: check whether sender IP is in internal networks and sender domain is internal domain
 * check_private: check sensitivity header for private keyword and that private mails not exceed size limit and have no attachments
 * check_qr: check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists
 * check_rcptlimit: check number of recipients (in to and cc headers) against limit
 * check_string: check raw email data for combination of strings
-* check_custom: check email with configurable custom function
 * decrypt_pdf: attempt to decrypt PDF using a provided list of passwords and optionally scan contents with AV and removes encryption
 * decrypt_zip: attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption
 * dmarc_report: parse DMARC xml reports and write results to syslog
