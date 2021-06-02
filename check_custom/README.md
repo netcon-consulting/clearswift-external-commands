@@ -10,7 +10,7 @@ Check email with configurable custom function.
 * Check custom function: list with one item holding Python3 code defining custom function 'check_email'
 
 ## Notes
-The custom function 'check_mail' needs to return the appropriate return code `ReturnCode.NOT_DETECTED`, `ReturnCode.DETECTED` or `ReturnCode.ERROR`. Also for `ReturnCode.DETECTED` and `ReturnCode.ERROR` a corresponding message should be written to the log using the `write_log` function.
+The custom function `check_email` needs to return the appropriate return code `ReturnCode.NOT_DETECTED`, `ReturnCode.DETECTED` or `ReturnCode.ERROR`. Also for `ReturnCode.DETECTED` and `ReturnCode.ERROR` a corresponding message should be written to the log using the `write_log` function.
 
 Example:
 ```
