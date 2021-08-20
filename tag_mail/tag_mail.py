@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V6.1.1
+# tag_mail.py V6.1.2
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -128,7 +128,7 @@ def main(args):
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                    header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "").replace("\r", "")) ])
 
                     list_address = extract_addresses(header)
 
@@ -180,7 +180,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # remove subject tag
 
-            header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
+            header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "").replace("\r", "")) ])
 
             match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
 
@@ -288,7 +288,7 @@ def main(args):
 
             pattern_quote = re.compile(r'^".*"$')
 
-            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "")) ]))
+            list_address = extract_addresses("".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("From")).replace("\n", "").replace("\r", "")) ]))
 
             if list_address:
                 (prefix, address, suffix) = list_address[0]
@@ -342,7 +342,7 @@ def main(args):
 
                 for header_keyword in [ "To", "Cc" ]:
                     if header_keyword in email:
-                        header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "")) ])
+                        header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(", ".join([ str(header) for header in email.get_all(header_keyword) ]).replace("\n", "").replace("\r", "")) ])
 
                         list_address = extract_addresses(header)
 
@@ -405,7 +405,7 @@ def main(args):
         if config.subject_tag and "Subject" in email:
             # add subject tag
 
-            header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "")) ])
+            header = "".join([ part if isinstance(part, str) else part.decode(python_charset(encoding), errors="ignore") if encoding else part.decode(CHARSET_UTF8, errors="ignore") for (part, encoding) in decode_header(str(email.get("Subject")).strip().replace("\n", "").replace("\r", "")) ])
 
             if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
                 header = "{} {}".format(config.subject_tag, header)
