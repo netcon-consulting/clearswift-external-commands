@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# dkim_header.py V1.0.0
+# dkim_header.py V1.0.1
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -44,7 +44,7 @@ def main(args):
 
         return ReturnCode.ERROR
 
-    match = re.search(r';\\idkim="([^"]+)";', args.spamlogic)
+    match = re.search(r';\tdkim="([^"]+)";', args.spamlogic)
 
     if match is None:
         write_log(args.log, "Cannot extract DKIM check result from SpamLogic info")
