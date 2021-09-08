@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# tag_mail.py V6.1.3
+# tag_mail.py V6.1.4
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -250,25 +250,50 @@ def main(args):
         if config.calendar_tag and calendar_part is not None:
             # remove calendar tag
 
-            match = re.search(r"\nORGANIZER;.*CN=([^:;\r\n]+)", calendar_content)
+            match = re.search(r"(^|\n)(ORGANIZER;[\S\s\r\n]*?)(\r?\n\S|$)", calendar_content)
 
             if match is not None:
-                organizer = match.group(1)
-                organizer_start = match.start(1)
-                organizer_end = match.end(1)
+                organizer = match.group(2)
+                organizer_start = match.start(2)
 
-                match = re.search(r"^{} ".format(re.escape(config.calendar_tag)), organizer)
+                match = re.search(r"[;:]CN=", organizer)
 
                 if match is not None:
-                    if HEADER_CTE in calendar_part:
-                        del calendar_part[HEADER_CTE]
+                    name_start = match.start() + 4
 
-                    if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
-                        calendar_charset = CHARSET_UTF8
+                    if organizer[name_start] == '"':
+                        name_start += 1
 
-                    calendar_part.set_payload(calendar_content[:organizer_start] + organizer[match.end():] + calendar_content[organizer_end:], charset=calendar_charset)
+                        name = ""
 
-                    email_modified = True
+                        for (index, char) in enumerate(organizer[name_start:]):
+                            if char == '"':
+                                if end_escape(organizer[name_start:name_start + index]):
+                                    name += char
+                                else:
+                                    break
+                            else:
+                                name += char
+
+                        name_end = name_start + index - 1
+                    else:
+                        match = re.search(r"[^:;]*", organizer[name_start:])
+
+                        name = match.group(0)
+                        name_end = name_start + match.end(0)
+
+                    match = re.search(r"^{} ".format(re.escape(config.calendar_tag)), name)
+
+                    if match is not None:
+                        if HEADER_CTE in calendar_part:
+                            del calendar_part[HEADER_CTE]
+
+                        if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
+                            calendar_charset = CHARSET_UTF8
+
+                        calendar_part.set_payload(calendar_content[:organizer_start + name_start] + name[match.end():] + calendar_content[organizer_start + name_end:], charset=calendar_charset)
+
+                        email_modified = True
     else:
         if config.address_tag and "From" in email:
             # add address tag
@@ -443,21 +468,43 @@ def main(args):
         if config.calendar_tag and calendar_part is not None:
             # add calendar tag
 
-            match = re.search(r"\nORGANIZER;.*CN=([^:;\r\n]+)", calendar_content)
+            match = re.search(r"(^|\n)(ORGANIZER;[\S\s\r\n]*?)(\r?\n\S|$)", calendar_content)
 
             if match is not None:
-                organizer = match.group(1)
+                organizer = match.group(2)
+                organizer_start = match.start(2)
 
-                if not re.search(r"^{} ".format(re.escape(config.calendar_tag)), organizer):
-                    if HEADER_CTE in calendar_part:
-                        del calendar_part[HEADER_CTE]
+                match = re.search(r"[;:]CN=", organizer)
 
-                    if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
-                        calendar_charset = CHARSET_UTF8
+                if match is not None:
+                    name_start = match.start() + 4
 
-                    calendar_part.set_payload(calendar_content[:match.start(1)] + config.calendar_tag + " " + organizer + calendar_content[match.end(1):], charset=calendar_charset)
+                    if organizer[name_start] == '"':
+                        name_start += 1
 
-                    email_modified = True
+                        name = ""
+
+                        for (index, char) in enumerate(organizer[name_start:]):
+                            if char == '"':
+                                if end_escape(organizer[name_start:name_start + index]):
+                                    name += char
+                                else:
+                                    break
+                            else:
+                                name += char
+                    else:
+                        name = re.search(r"[^:;]*", organizer[name_start:]).group(0)
+
+                    if not re.search(r"^{} ".format(re.escape(config.calendar_tag)), name):
+                        if HEADER_CTE in calendar_part:
+                            del calendar_part[HEADER_CTE]
+
+                        if calendar_charset != CHARSET_UTF8 and not string_ascii(config.calendar_tag):
+                            calendar_charset = CHARSET_UTF8
+
+                        calendar_part.set_payload(calendar_content[:organizer_start + name_start] + config.calendar_tag + " " + calendar_content[organizer_start + name_start:], charset=calendar_charset)
+
+                        email_modified = True
 
     if email_modified:
         try:
