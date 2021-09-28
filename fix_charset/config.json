@@ -3,7 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" %FILENAME% %LOGNAME% \"External command - Fix charset\"",
+        "parameters": "-t \"%ITEMTYPE%\" %FILENAME% %LOGNAME% \"External command - fix_charset\"",
         "responses": {
             "NONE": "Not modified",
             "MODIFIED": "Charset changed",

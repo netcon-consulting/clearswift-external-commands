@@ -3,7 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check recipient limit\" %FILENAME% %LOGNAME% \"External command - Check recipient limit\"",
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check recipient limit\" %FILENAME% %LOGNAME% \"External command - check_rcptlimit\"",
         "responses": {
             "NONE": "Limit ok",
             "DETECTED": "Limit exceeded",

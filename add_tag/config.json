@@ -6,7 +6,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Add tag\" %FILENAME% %LOGNAME% \"External command - Add tag\"",
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Add tag\" %FILENAME% %LOGNAME% \"External command - add_tag\"",
         "responses": {
             "NONE": "Not modified",
             "DETECTED": "Invalid encoding (%LOGTEXT%)",

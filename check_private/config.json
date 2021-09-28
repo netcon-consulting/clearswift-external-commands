@@ -3,7 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check private\" %FILENAME% %LOGNAME% \"External command - Check private\"",
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check private\" %FILENAME% %LOGNAME% \"External command - check_private\"",
         "responses": {
             "NONE": "Private",
             "DETECTED": "Not private",
