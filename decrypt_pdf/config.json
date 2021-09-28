@@ -9,11 +9,11 @@
         "media_types": {
             "PDF": [ "encrypted" ]
         },
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Decryption successful" },
-            "1": { "action": "DETECTED", "description": "Problem encountered (%LOGTEXT%)" },
-            "2": { "action": "MODIFIED", "description": "Encryption removed" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "responses": {
+            "NONE": "Decryption successful",
+            "DETECTED": "Problem encountered (%LOGTEXT%)",
+            "MODIFIED": "Encryption removed",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
             "detected": { "primary": "hold:Decrypt PDF" }

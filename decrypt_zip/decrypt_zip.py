@@ -1,61 +1,34 @@
-#!/usr/bin/env python3
-
-# decrypt_zip.py V2.1.0
+# decrypt_zip.py V3.0.0
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
-
-import enum
-import sys
-
-#########################################################################################
 
 from pathlib import Path
 from io import BytesIO
 from tempfile import TemporaryDirectory
 import pyzipper
-from netcon import ParserArgs, get_config, write_log, get_expression_list, scan_sophos, scan_kaspersky, scan_avira, CHARSET_UTF8
 
-DESCRIPTION = "attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption"
-
-@enum.unique
-class ReturnCode(enum.IntEnum):
-    """
-    Return code.
-
-    0   - decryption successful
-    1   - decryption failed or virus found
-    2   - encryption successfully removed
-    99  - error
-    255 - unhandled exception
-    """
-    SUCCESS = 0
-    PROBLEM = 1
-    DECRYPTED = 2
-    ERROR = 99
-    EXCEPTION = 255
-
+ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "name_expression_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
 
-CODE_SKIPPED = None
+def run_command(input, log, config, additional):
+    """
+    Attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption.
 
-def main(args):
-    try:
-        config = get_config(args.config, CONFIG_PARAMETERS)
-    except Exception as ex:
-        write_log(args.log, ex)
-
-        return ReturnCode.ERROR
-
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    """
     try:
         set_password = get_expression_list(config.name_expression_list)
     except Exception as ex:
-        write_log(args.log, ex)
+        write_log(log, ex)
 
         return ReturnCode.ERROR
 
     if not set_password:
-        write_log(args.log, "Password list is empty")
+        write_log(log, "Password list is empty")
 
         return ReturnCode.ERROR
 
@@ -83,7 +56,7 @@ def main(args):
         if config.scan_avira:
             path_tmpdir.chmod(0o755)
 
-        with pyzipper.AESZipFile(args.input, "r", compression=pyzipper.ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
+        with pyzipper.AESZipFile(input, "r", compression=pyzipper.ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
             for password in set_password:
                 try:
                     zf.pwd = password.encode(CHARSET_UTF8)
@@ -97,7 +70,7 @@ def main(args):
                             with open(path_file, "wb") as f:
                                 f.write(data)
                         except Exception:
-                            write_log(args.log, "Cannot extract file '{}'".format(file_name))
+                            write_log(log, "Cannot extract file '{}'".format(file_name))
 
                             return ReturnCode.ERROR
 
@@ -107,7 +80,7 @@ def main(args):
                             try:
                                 virus_found = scan(path_file)
                             except Exception as ex:
-                                write_log(args.log, ex)
+                                write_log(log, ex)
 
                                 return ReturnCode.ERROR
 
@@ -115,9 +88,9 @@ def main(args):
                                 break
 
                         if virus_found is not None:
-                            write_log(args.log, "Virus '{}'".format(virus_found))
+                            write_log(log, "Virus '{}'".format(virus_found))
 
-                            return ReturnCode.PROBLEM
+                            return ReturnCode.DETECTED
 
                         if config.remove_encryption:
                             zf_decrypted.writestr(file_name, data)
@@ -126,33 +99,16 @@ def main(args):
                 except RuntimeError:
                     pass
             else:
-                write_log(args.log, "Decryption failed")
+                write_log(log, "Decryption failed")
 
-                return ReturnCode.PROBLEM
+                return ReturnCode.DETECTED
 
     if config.remove_encryption:
         zf_decrypted.close()
 
-        with open(args.input, "wb") as f:
+        with open(input, "wb") as f:
             f.write(buffer.getvalue())
 
-        return ReturnCode.DECRYPTED
+        return ReturnCode.MODIFIED
 
-    return ReturnCode.SUCCESS
-
-#########################################################################################
-
-if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
-
-    args = parser.parse_args()
-
-    if CODE_SKIPPED is not None and args.type != "Message":
-        # skip embedded/attached SMTP messages
-        sys.exit(CODE_SKIPPED)
-
-    try:
-        sys.exit(main(args))
-    except Exception:
-        # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+    return ReturnCode.NONE

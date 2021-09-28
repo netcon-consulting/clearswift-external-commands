@@ -1,61 +1,41 @@
-#!/usr/bin/env python3
-
-# replace_url.py V2.1.0
+# replace_url.py V3.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import enum
-import sys
-
-#########################################################################################
-
 import re
 from bs4 import BeautifulSoup
-from netcon import ParserArgs, get_config, read_email, write_log, get_expression_list, html2text
 
-DESCRIPTION = "replace URLs in text and html body if one of the keywords is found"
-
-@enum.unique
-class ReturnCode(enum.IntEnum):
-    """
-    Return codes.
-
-    0   - email not modified
-    1   - one or more URL replaced
-    99  - error
-    255 - unhandled exception
-    """
-    NOT_MODIFIED = 0
-    URL_REPLACED = 1
-    ERROR = 99
-    EXCEPTION = 255
-
+ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "name_expression_list", "url_replacement" )
-
-CODE_SKIPPED = ReturnCode.NOT_MODIFIED
 
 PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)([\s>)\]}\"]|$)+", re.IGNORECASE)
 
-def main(args):
-    try:
-        config = get_config(args.config, CONFIG_PARAMETERS)
+def run_command(input, log, config, additional):
+    """
+    Replace URLs in text and html body if one of the keywords is found.
 
-        email = read_email(args.input)
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    """
+    try:
+        email = read_email(input)
     except Exception as ex:
-        write_log(args.log, ex)
+        write_log(log, ex)
 
         return ReturnCode.ERROR
 
     try:
         set_expression = get_expression_list(config.name_expression_list)
     except Exception as ex:
-        write_log(args.log, ex)
+        write_log(log, ex)
 
         return ReturnCode.ERROR
 
     if not set_expression:
-        write_log(args.log, "Expression list is empty")
+        write_log(log, "Expression list is empty")
 
         return ReturnCode.ERROR
 
@@ -123,30 +103,13 @@ def main(args):
             part_html.set_payload(content_html)
 
         try:
-            with open(args.input, "wb") as f:
+            with open(input, "wb") as f:
                 f.write(email.as_bytes())
         except Exception:
-            write_log(args.log, "Error writing '{}'".format(args.input))
+            write_log(log, "Error writing '{}'".format(input))
 
             return ReturnCode.ERROR
 
-        return ReturnCode.URL_REPLACED
+        return ReturnCode.MODIFIED
 
-    return ReturnCode.NOT_MODIFIED
-
-#########################################################################################
-
-if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
-
-    args = parser.parse_args()
-
-    if CODE_SKIPPED is not None and args.type != "Message":
-        # skip embedded/attached SMTP messages
-        sys.exit(CODE_SKIPPED)
-
-    try:
-        sys.exit(main(args))
-    except Exception:
-        # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+    return ReturnCode.NONE

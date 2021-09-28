@@ -6,11 +6,11 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"Config - Replace URL\" \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "MODIFIED", "description": "URL replaced" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Replace URL\" %FILENAME% %LOGNAME% \"External command - Replace URL\"",
+        "responses": {
+            "NONE": "Not modified",
+            "MODIFIED": "URL replaced",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "config": {
             "name_expression_list": { "type": "string", "description": "name of lexical expression list with keywords", "value": "\"Replace URL\"" },

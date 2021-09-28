@@ -3,11 +3,11 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "MODIFIED", "description": "Charset changed" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" %FILENAME% %LOGNAME% \"External command - Fix charset\"",
+        "responses": {
+            "NONE": "Not modified",
+            "MODIFIED": "Charset changed",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         }
     }
 }

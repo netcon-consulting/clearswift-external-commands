@@ -1,45 +1,24 @@
-#!/usr/bin/env python3
-
-# check_rcptlimit.py V2.1.0
+# check_rcptlimit.py V3.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import enum
-import sys
-
-#########################################################################################
-
-from netcon import ParserArgs, get_config, read_email, write_log, extract_email_addresses
-
-DESCRIPTION = "check number of recipients (in to and cc headers) against limit"
-
-@enum.unique
-class ReturnCode(enum.IntEnum):
-    """
-    Return codes.
-
-    0   - number of recipients within limit
-    1   - number of recipients exceeds limit
-    99  - error
-    255 - unhandled exception
-    """
-    LIMIT_OK = 0
-    LIMIT_EXCEEDED = 1
-    ERROR = 99
-    EXCEPTION = 255
-
+ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "recipient_limit", )
 
-CODE_SKIPPED = ReturnCode.LIMIT_OK
+def run_command(input, log, config, additional):
+    """
+    Check number of recipients (in To and Cc headers) against limit.
 
-def main(args):
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    """
     try:
-        config = get_config(args.config, CONFIG_PARAMETERS)
-
-        email = read_email(args.input)
+        email = read_email(input)
     except Exception as ex:
-        write_log(args.log, ex)
+        write_log(log, ex)
 
         return ReturnCode.ERROR
 
@@ -55,23 +34,6 @@ def main(args):
                     num_recipients += len(email_addresses)
 
     if num_recipients > config.recipient_limit:
-        return ReturnCode.LIMIT_EXCEEDED
+        return ReturnCode.DETECTED
 
-    return ReturnCode.LIMIT_OK
-
-#########################################################################################
-
-if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
-
-    args = parser.parse_args()
-
-    if CODE_SKIPPED is not None and args.type != "Message":
-        # skip embedded/attached SMTP messages
-        sys.exit(CODE_SKIPPED)
-
-    try:
-        sys.exit(main(args))
-    except Exception:
-        # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+    return ReturnCode.NONE

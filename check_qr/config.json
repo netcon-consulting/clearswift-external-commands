@@ -18,10 +18,10 @@
             "PNG": [ ],
             "TIFF": [ ]
         },
-        "return_codes": {
-            "0": { "action": "NONE", "description": "No QR-code with URL or URLs not malicious" },
-            "1": { "action": "DETECTED", "description": "Malicious URL (%LOGTEXT%)" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "responses": {
+            "NONE": "No QR-code with URL or URLs not malicious",
+            "DETECTED": "Malicious URL (%LOGTEXT%)",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
             "detected": { "primary": "hold:Check QR" }

@@ -1,84 +1,64 @@
-#!/usr/bin/env python3
-
-# encrypt_mail.py V2.0.0
+# encrypt_mail.py V3.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
-
-import enum
-import sys
-
-#########################################################################################
 
 import re
 import random
 import string
 from email.message import EmailMessage
 import smtplib
-from netcon import ParserArgs, get_config, read_email, write_log, zip_encrypt, extract_email_addresses, extract_email_address
 
-DESCRIPTION = "zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender"
-
-@enum.unique
-class ReturnCode(enum.IntEnum):
-    """
-    Return code.
-
-    0   - encryption skipped
-    1   - mail encrypted
-    99  - error
-    255 - unhandled exception
-    """
-    ENCRYPTION_SKIPPED = 0
-    MAIL_ENCRYPTED = 1
-    ERROR = 99
-    EXCEPTION = 255
-
+ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "keyword_encryption", "password_length", "password_punctuation" )
-
-CODE_SKIPPED = ReturnCode.ENCRYPTION_SKIPPED
 
 MESSAGE_RECIPIENT="You have received an encrypted email from {} attached to this email.\n\nThe password will be provided to you by the sender shortly.\n\nHave a nice day."
 MESSAGE_SENDER="The email has been encrypted with the password {} and sent.\n\nPlease provide the recipients with the password.\n\nHave a nice day."
 
 PORT_SMTP=10026
 
-def main(args):
-    try:
-        config = get_config(args.config, CONFIG_PARAMETERS)
+def run_command(input, log, config, additional):
+    """
+    Zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender.
 
-        email = read_email(args.input)
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    """
+    try:
+        email = read_email(input)
     except Exception as ex:
-        write_log(args.log, ex)
+        write_log(log, ex)
 
         return ReturnCode.ERROR
 
     if "Subject" not in email:
-        return ReturnCode.ENCRYPTION_SKIPPED
+        return ReturnCode.NONE
 
     header_subject = str(email.get("Subject"))
 
     keyword_escaped = re.escape(config.keyword_encryption)
 
     if not re.match(r"^{}".format(keyword_escaped), header_subject, re.IGNORECASE):
-        return ReturnCode.ENCRYPTION_SKIPPED
+        return ReturnCode.NONE
 
     if "From" not in email:
-        write_log(args.log, "Header from does not exist")
+        write_log(log, "Header from does not exist")
 
         return ReturnCode.ERROR
 
     header_from = str(email.get("From"))
 
     if not header_from:
-        write_log(args.log, "Header from is empty")
+        write_log(log, "Header from is empty")
 
         return ReturnCode.ERROR
 
     address_sender = extract_email_address(header_from)
 
     if not address_sender:
-        write_log(args.log, "Cannot find sender address")
+        write_log(log, "Cannot find sender address")
 
         return ReturnCode.ERROR
 
@@ -96,7 +76,7 @@ def main(args):
                     address_recipient[header_keyword] |= email_addresses
 
     if not address_recipient["To"]:
-        write_log(args.log, "Cannot find recipient address")
+        write_log(log, "Cannot find recipient address")
 
         return ReturnCode.ERROR
 
@@ -112,7 +92,7 @@ def main(args):
     try:
         zip_archive = zip_encrypt({ ("email.eml", email) }, password)
     except Exception:
-        write_log(args.log, "Error zip-encrypting email")
+        write_log(log, "Error zip-encrypting email")
 
         return ReturnCode.ERROR
 
@@ -130,7 +110,7 @@ def main(args):
         with smtplib.SMTP("localhost", port=PORT_SMTP) as s:
             s.send_message(email_message)
     except Exception:
-        write_log(args.log, "Cannot send recipient email")
+        write_log(log, "Cannot send recipient email")
 
         return ReturnCode.ERROR
 
@@ -145,23 +125,6 @@ def main(args):
         with smtplib.SMTP("localhost", port=PORT_SMTP) as s:
             s.send_message(email_message)
     except Exception:
-        write_log(args.log, "Cannot send sender email")
+        write_log(log, "Cannot send sender email")
 
-    return ReturnCode.MAIL_ENCRYPTED
-
-#########################################################################################
-
-if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
-
-    args = parser.parse_args()
-
-    if CODE_SKIPPED is not None and args.type != "Message":
-        # skip embedded/attached SMTP messages
-        sys.exit(CODE_SKIPPED)
-
-    try:
-        sys.exit(main(args))
-    except Exception:
-        # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+    return ReturnCode.DETECTED

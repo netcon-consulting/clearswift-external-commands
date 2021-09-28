@@ -3,11 +3,11 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"%ITEMTYPE%\" \"%SPAMLOGICFIELD%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "MODIFIED", "description": "Header added" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - DKIM header\" -a \"spamlogic=%SPAMLOGICFIELD%\" %FILENAME% %LOGNAME% \"External command - DKIM header\"",
+        "responses": {
+            "NONE": "Not modified",
+            "MODIFIED": "Header added",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         }
     }
 }

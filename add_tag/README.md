@@ -1,7 +1,7 @@
-tag_mail.py V6.1.4
-==================
+add_tag.py V1.0.0
+=================
 
-Add and remove tags in address and subject headers, text and html bodies and calendar objects.
+Add tags in address and subject headers, text and html bodies and calendar objects.
 
 ## Parameters
 * address_tag (string): address tag for from, to and cc headers
@@ -20,4 +20,4 @@ Add and remove tags in address and subject headers, text and html bodies and cal
 * Internal domains: list of internal domains
 
 ## Hold Areas
-* Tag mail: mails with invalid character encoding
+* Add tag: mails with invalid character encoding

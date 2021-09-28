@@ -1,60 +1,44 @@
-#!/usr/bin/env python3
-
-# dmarc_report.py V1.1.0
+# dmarc_report.py V2.0.0
 #
 # Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import enum
-import sys
-
-#########################################################################################
-
 from string import Template
 from xml.etree import ElementTree
 import syslog
-from netcon import ParserArgs, read_file, write_log
 
-DESCRIPTION = "parse DMARC xml reports and write results to syslog"
-
-@enum.unique
-class ReturnCode(enum.IntEnum):
-    """
-    Return codes.
-
-    0   - DMARC report successfully parsed
-    99  - error
-    255 - unhandled exception
-    """
-    SUCCESS = 0
-    ERROR = 99
-    EXCEPTION = 255
-
+ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( )
-
-CODE_SKIPPED = None
 
 TEMPLATE_SYSLOG = Template("org=$name_org, id=$id_report, begin=$date_begin, end=$date_end, domain=$domain, ip=$ip_source, count=$count, disposition=$disposition, dkim=$dkim, spf=$spf")
 
-def main(args):
+def run_command(input, log, config, additional):
+    """
+    Parse DMARC xml reports and write results to syslog.
+
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    """
     try:
-        xml_report = read_file(args.input, ignore_errors=True)
+        xml_report = read_file(input, ignore_errors=True)
     except Exception as ex:
-        write_log(args.log, ex)
+        write_log(log, ex)
 
         return ReturnCode.ERROR
 
     try:
         syslog.openlog("dmarc_report", facility=syslog.LOG_MAIL)
     except Exception:
-        write_log(args.log, "Cannot connect to syslog")
+        write_log(log, "Cannot connect to syslog")
 
         return ReturnCode.ERROR
 
     try:
         tree = ElementTree.fromstring(xml_report)
     except Exception:
-        write_log(args.log, "Cannot parse xml")
+        write_log(log, "Cannot parse xml")
 
         return ReturnCode.ERROR
 
@@ -108,21 +92,4 @@ def main(args):
 
                     break
 
-    return ReturnCode.SUCCESS
-
-#########################################################################################
-
-if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
-
-    args = parser.parse_args()
-
-    if CODE_SKIPPED is not None and args.type != "Message":
-        # skip embedded/attached SMTP messages
-        sys.exit(CODE_SKIPPED)
-
-    try:
-        sys.exit(main(args))
-    except Exception:
-        # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+    return ReturnCode.NONE

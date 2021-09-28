@@ -6,11 +6,11 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"Config - Check internal\" \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "External sender" },
-            "1": { "action": "DETECTED", "description": "Internal sender" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check internal\" %FILENAME% %LOGNAME% \"External command - Check internal\"",
+        "responses": {
+            "NONE": "External sender",
+            "DETECTED": "Internal sender",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
             "detected": { "primary": "deliver" }

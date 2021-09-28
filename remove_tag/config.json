@@ -1,20 +1,20 @@
 {
-    "Tag mail": {
+    "Remove tag": {
         "list_address": [
             "Internal Domains"
         ],
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"Config - Tag mail\" \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "DETECTED", "description": "Invalid encoding (%LOGTEXT%)" },
-            "2": { "action": "MODIFIED", "description": "Mail tagged" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Remove tag\" %FILENAME% %LOGNAME% \"External command - Remove tag\"",
+        "responses": {
+            "NONE": "Not modified",
+            "DETECTED": "Invalid encoding (%LOGTEXT%)",
+            "MODIFIED": "Tags removed",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
-            "detected": { "primary": "hold:Tag mail" }
+            "detected": { "primary": "hold:Remove tag" }
         },
         "config": {
             "address_tag": { "type": "string", "description": "address tag for from, to and cc headers", "value": "\"[EXT]\"" },
@@ -28,24 +28,6 @@
             "html_top": { "type": "boolean", "description": "insert html tag at top else at the bottom", "value": "true" },
             "html_tag_id": { "type": "string", "description": "ID of html tag", "value": "\"tag_mail_1\"" },
             "calendar_tag": { "type": "string", "description": "calendar tag for organizer field", "value": "\"[EXT]\"" }
-        }
-    },
-    "Un-tag mail": {
-        "list_address": [
-            "Internal Domains"
-        ],
-        "media_types": {
-            "SMTP": [ "not_protected" ]
-        },
-        "parameters": "-r %FILENAME% %LOGNAME% \"Config - Tag mail\" \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Not modified" },
-            "1": { "action": "DETECTED", "description": "Invalid encoding (%LOGTEXT%)" },
-            "2": { "action": "MODIFIED", "description": "Mail un-tagged" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
-        },
-        "disposal_actions": {
-            "detected": { "primary": "hold:Tag mail" }
         }
     }
 }

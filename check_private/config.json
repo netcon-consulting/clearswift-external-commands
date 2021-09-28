@@ -3,12 +3,12 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"Config - Check private\" \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Private" },
-            "1": { "action": "DETECTED", "description": "Not private" },
-            "2": { "action": "MODIFIED", "description": "Invalid private (%LOGTEXT%)" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check private\" %FILENAME% %LOGNAME% \"External command - Check private\"",
+        "responses": {
+            "NONE": "Private",
+            "DETECTED": "Not private",
+            "MODIFIED": "Invalid private (%LOGTEXT%)",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
             "detected": { "primary": "hold:Not private" },

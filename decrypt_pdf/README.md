@@ -1,4 +1,4 @@
-decrypt_pdf.py V1.1.0
+decrypt_pdf.py V2.0.0
 =====================
 
 Attempt to decrypt PDF using a provided list of passwords and optionally scan contents with AV and removes encryption.

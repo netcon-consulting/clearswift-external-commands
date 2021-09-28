@@ -1,56 +1,31 @@
-#!/usr/bin/env python3
-
-# check_qr.py V1.1.0
+# check_qr.py V2.0.0
 #
 # Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import enum
-import sys
-
-#########################################################################################
-
 import re
 from PIL import Image
 from pyzbar.pyzbar import decode
-from netcon import ParserArgs, get_config, write_log, get_url_list, domain_blacklisted, url2regex, CHARSET_UTF8
 
-DESCRIPTION = "check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists"
-
-@enum.unique
-class ReturnCode(enum.IntEnum):
-    """
-    Return code.
-
-    0   - no QR-code with URL or URLs not malicious
-    1   - QR-code with malicious URL
-    99  - error
-    255 - unhandled exception
-    """
-    OK = 0
-    MALICIOUS = 1
-    ERROR = 99
-    EXCEPTION = 255
-
+ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "name_url_blacklist", "name_url_whitelist" )
 
-CODE_SKIPPED = None
+def run_command(input, log, config, additional):
+    """
+    Check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists.
 
-def main(args):
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    """
     PATTERN_URL = re.compile(r"(https?://|www\.|ftp\.)\S+", re.IGNORECASE)
     PATTERN_DOMAIN = re.compile(r"^(https?://)?([^/]+)\S*$", re.IGNORECASE)
 
     try:
-        config = get_config(args.config, CONFIG_PARAMETERS)
-    except Exception as ex:
-        write_log(args.log, ex)
-
-        return ReturnCode.ERROR
-
-    try:
-        image = Image.open(args.input)
+        image = Image.open(input)
     except Exception:
-        write_log(args.log, "Cannot read image '{}'".format(args.input))
+        write_log(log, "Cannot read image '{}'".format(input))
 
         return ReturnCode.ERROR
 
@@ -66,7 +41,7 @@ def main(args):
             try:
                 set_url = get_url_list(config.name_url_blacklist)
             except Exception as ex:
-                write_log(args.log, ex)
+                write_log(log, ex)
 
                 return ReturnCode.ERROR
 
@@ -75,7 +50,7 @@ def main(args):
             try:
                 set_url = get_url_list(config.name_url_whitelist)
             except Exception as ex:
-                write_log(args.log, ex)
+                write_log(log, ex)
 
                 return ReturnCode.ERROR
 
@@ -90,9 +65,9 @@ def main(args):
                 else:
                     for pattern in set_blacklist:
                         if re.search(pattern, url) is not None:
-                            write_log(args.log, "'{}' listed on '{}'".format(url, config.name_url_blacklist))
+                            write_log(log, "'{}' listed on '{}'".format(url, config.name_url_blacklist))
 
-                            return ReturnCode.MALICIOUS
+                            return ReturnCode.DETECTED
 
                     domain = re.search(PATTERN_DOMAIN, url).group(2).lower()
 
@@ -100,9 +75,9 @@ def main(args):
                         blacklist = domain_blacklisted(domain)
 
                         if blacklist is not None:
-                            write_log(args.log, "'{}' listed on '{}'".format(domain, blacklist))
+                            write_log(log, "'{}' listed on '{}'".format(domain, blacklist))
 
-                            return ReturnCode.MALICIOUS
+                            return ReturnCode.DETECTED
 
                         index = domain.find(".")
 
@@ -111,21 +86,4 @@ def main(args):
 
                         domain = domain[index + 1:]
 
-    return ReturnCode.OK
-
-#########################################################################################
-
-if __name__ == "__main__":
-    parser = ParserArgs(DESCRIPTION, bool(CONFIG_PARAMETERS), CODE_SKIPPED is not None)
-
-    args = parser.parse_args()
-
-    if CODE_SKIPPED is not None and args.type != "Message":
-        # skip embedded/attached SMTP messages
-        sys.exit(CODE_SKIPPED)
-
-    try:
-        sys.exit(main(args))
-    except Exception:
-        # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+    return ReturnCode.NONE

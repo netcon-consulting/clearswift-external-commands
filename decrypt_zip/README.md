@@ -1,4 +1,4 @@
-decrypt_zip.py V2.1.0
+decrypt_zip.py V3.0.0
 =====================
 
 Attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption.

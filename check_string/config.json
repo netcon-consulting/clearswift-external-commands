@@ -3,11 +3,11 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"Config - Check string\" \"%ITEMTYPE%\"",
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Not found" },
-            "1": { "action": "DETECTED", "description": "String found" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check string\" %FILENAME% %LOGNAME% \"External command - Check string\"",
+        "responses": {
+            "NONE": "Not found",
+            "DETECTED": "String found",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
             "detected": { "primary": "hold:String detected" }

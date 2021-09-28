@@ -3,12 +3,12 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "%FILENAME% %LOGNAME% \"Config - Encrypt mail\" \"%ITEMTYPE%\"",
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Encrypt mail\" %FILENAME% %LOGNAME% \"External command - Encrypt mail\"",
         "timeout": 120,
-        "return_codes": {
-            "0": { "action": "NONE", "description": "Encryption skipped" },
-            "1": { "action": "DETECTED", "description": "Mail encrypted" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "responses": {
+            "NONE": "Encryption skipped",
+            "DETECTED": "Mail encrypted",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
         "disposal_actions": {
             "detected": { "primary": "hold:Encrypt mail" }

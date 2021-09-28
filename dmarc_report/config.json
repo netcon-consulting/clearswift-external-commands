@@ -3,10 +3,10 @@
         "media_types": {
             "XML": [ ]
         },
-        "return_codes": {
-            "0": { "action": "NONE", "description": "DMARC report parsed" },
-            "1": { "action": "DETECTED", "description": "dummy" },
-            "99": { "action": "NOT_CHECKED", "description": "Error (%LOGTEXT%)" }
+        "responses": {
+            "NONE": "DMARC report parsed",
+            "DETECTED": "dummy",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
         }
     }
 }
