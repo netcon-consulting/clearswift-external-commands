@@ -1,4 +1,4 @@
-remove_tag.py V1.0.0
+remove_tag.py V1.0.1
 ====================
 
 Remove tags in address and subject headers, text and html bodies and calendar objects.

@@ -1,6 +1,6 @@
-# remove_tag.py V1.0.0
+# remove_tag.py V1.0.1
 #
-# Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -104,7 +104,7 @@ def run_command(input, log, config, additional):
         except Exception as ex:
             write_log(log, ex)
 
-            return ReturnCode.INVALID_ENCODING
+            return ReturnCode.DETECTED
 
         if part is not None:
             (part, charset, content) = part
@@ -147,7 +147,7 @@ def run_command(input, log, config, additional):
         except Exception as ex:
             write_log(log, ex)
 
-            return ReturnCode.INVALID_ENCODING
+            return ReturnCode.DETECTED
 
         if part is not None:
             (part, charset, content) = part
@@ -192,7 +192,7 @@ def run_command(input, log, config, additional):
         except Exception as ex:
             write_log(log, ex)
 
-            return ReturnCode.INVALID_ENCODING
+            return ReturnCode.DETECTED
 
         if part is not None:
             (part, charset, content) = part
