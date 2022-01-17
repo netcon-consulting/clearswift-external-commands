@@ -1,4 +1,4 @@
-# command_library.py V6.0.0
+# command_library.py V6.0.1
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -45,6 +45,8 @@ LIST_CONNECTION = "connection"
 LIST_FILENAME = "filename"
 LIST_URL = "url"
 LIST_LEXICAL = "lexical"
+
+TupleInfo = namedtuple("TupleInfo", "tag_attribute tag_table tag_list tag_item")
 
 LIST_INFO = {
     LIST_ADDRESS: TupleInfo(tag_attribute=None, tag_table="AddressListTable", tag_list="AddressList", tag_item="Address"),
@@ -261,7 +263,12 @@ def address_list(name_list):
     :type name_list: str
     :rtype: list
     """
-    return get_list(LIST_ADDRESS, "^{}$".format(name_list), ".*")
+    extracted_list = get_list(LIST_ADDRESS, "^{}$".format(name_list), ".*")
+
+    if extracted_list:
+        return extracted_list[0][1]
+    else:
+        raise Exception("Address list '{}' does not exist".format(name_list))
 
 def lexical_list(name_list):
     """
@@ -270,7 +277,12 @@ def lexical_list(name_list):
     :type name_list: str
     :rtype: list
     """
-    return get_list(LIST_LEXICAL, "^{}$".format(name_list), ".*")
+    extracted_list = get_list(LIST_LEXICAL, "^{}$".format(name_list), ".*")
+
+    if extracted_list:
+        return extracted_list[0][1]
+    else:
+        raise Exception("Lexical list '{}' does not exist".format(name_list))
 
 def url_list(name_list):
     """
@@ -279,7 +291,12 @@ def url_list(name_list):
     :type name_list: str
     :rtype: list
     """
-    return get_list(LIST_URL, "^{}$".format(name_list), ".*")
+    extracted_list = get_list(LIST_URL, "^{}$".format(name_list), ".*")
+
+    if extracted_list:
+        return extracted_list[0][1]
+    else:
+        raise Exception("URL list '{}' does not exist".format(name_list))
 
 def read_file(path_file, ignore_errors=False):
     """
