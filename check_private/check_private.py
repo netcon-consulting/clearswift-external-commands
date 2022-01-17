@@ -1,10 +1,10 @@
-# check_private.py V3.0.0
+# check_private.py V4.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "max_size_kb", )
+CONFIG_PARAMETERS = ( "max_size", )
 
 def run_command(input, log, config, additional):
     """
@@ -23,7 +23,7 @@ def run_command(input, log, config, additional):
         return ReturnCode.ERROR
 
     if "Sensitivity" in email and str(email.get("Sensitivity")) == "private":
-        if len(email.as_bytes()) > config.max_size_kb * 1024:
+        if len(email.as_bytes()) > config.max_size * 1024:
             write_log(log, "Mail exceeds max size")
 
             return ReturnCode.MODIFIED

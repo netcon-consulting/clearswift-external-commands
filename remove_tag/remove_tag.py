@@ -1,4 +1,4 @@
-# remove_tag.py V1.0.1
+# remove_tag.py V2.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,7 +7,7 @@ import re
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id", "calendar_tag" )
+CONFIG_PARAMETERS = ( "address_tag", "clean_text", "clean_html", "subject_tag", "text_tag", "html_tag", "html_tag_id", "calendar_tag" )
 
 RECURSION_LIMIT = 5000
 
@@ -20,6 +20,9 @@ def run_command(input, log, config, additional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     """
+    if not (config.address_tag or config.subject_tag or config.text_tag or config.html_tag or config.calendar_tag):
+        return ReturnCode.NONE
+
     HEADER_CTE = "Content-Transfer-Encoding"
 
     try:
@@ -27,7 +30,7 @@ def run_command(input, log, config, additional):
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     sys.setrecursionlimit(RECURSION_LIMIT)
 
@@ -167,7 +170,7 @@ def run_command(input, log, config, additional):
                 except Exception:
                     write_log(log, "Error converting soup to string")
 
-                    return ReturnCode.ERROR
+                    return ReturnCode.DETECTED
 
                 body_modified = True
 
@@ -249,7 +252,7 @@ def run_command(input, log, config, additional):
         except Exception:
             write_log(log, "Error writing '{}'".format(input))
 
-            return ReturnCode.ERROR
+            return ReturnCode.DETECTED
 
         return ReturnCode.MODIFIED
 

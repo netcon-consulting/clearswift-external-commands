@@ -1,6 +1,6 @@
-# decrypt_zip.py V3.0.0
+# decrypt_zip.py V4.0.0
 #
-# Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from pathlib import Path
@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 import pyzipper
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "name_expression_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
+CONFIG_PARAMETERS = ( "password_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
 
 def run_command(input, log, config, additional):
     """
@@ -21,16 +21,16 @@ def run_command(input, log, config, additional):
     :type additional: TupleAdditional
     """
     try:
-        set_password = get_expression_list(config.name_expression_list)
+        set_password = set(lexical_list(config.password_list))
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     if not set_password:
         write_log(log, "Password list is empty")
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     list_scan = list()
 
@@ -72,7 +72,7 @@ def run_command(input, log, config, additional):
                         except Exception:
                             write_log(log, "Cannot extract file '{}'".format(file_name))
 
-                            return ReturnCode.ERROR
+                            return ReturnCode.DETECTED
 
                         path_file = str(path_file)
 
@@ -82,7 +82,7 @@ def run_command(input, log, config, additional):
                             except Exception as ex:
                                 write_log(log, ex)
 
-                                return ReturnCode.ERROR
+                                return ReturnCode.DETECTED
 
                             if virus_found is not None:
                                 break

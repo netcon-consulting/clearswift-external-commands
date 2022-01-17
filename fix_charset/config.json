@@ -6,8 +6,12 @@
         "parameters": "-t \"%ITEMTYPE%\" %FILENAME% %LOGNAME% \"External command - fix_charset\"",
         "responses": {
             "NONE": "Not modified",
+            "DETECTED": "Error (%LOGTEXT%)",
             "MODIFIED": "Charset changed",
             "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Fix charset" }
         }
     }
 }

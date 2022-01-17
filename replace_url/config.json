@@ -9,11 +9,15 @@
         "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Replace URL\" %FILENAME% %LOGNAME% \"External command - replace_url\"",
         "responses": {
             "NONE": "Not modified",
+            "DETECTED": "Error (%LOGTEXT%)",
             "MODIFIED": "URL replaced",
             "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Replace URL" }
+        },
         "config": {
-            "name_expression_list": { "type": "string", "description": "name of lexical expression list with keywords", "value": "\"Replace URL\"" },
+            "keyword_list": { "type": "string", "description": "name of lexical expression list with keywords", "value": "\"Replace URL\"" },
             "url_replacement": { "type": "string", "description": "replacement URL", "value": "\"https://www.fsf.org\"" }
         }
     }

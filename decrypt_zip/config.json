@@ -11,7 +11,7 @@
         },
         "responses": {
             "NONE": "Decryption successful",
-            "DETECTED": "Problem encountered (%LOGTEXT%)",
+            "DETECTED": "Error (%LOGTEXT%)",
             "MODIFIED": "Encryption removed",
             "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
@@ -19,7 +19,7 @@
             "detected": { "primary": "hold:Decrypt ZIP" }
         },
         "config": {
-            "name_expression_list": { "type": "string", "description": "name of lexical expression list with passwords", "value": "\"Decrypt ZIP passwords\"" },
+            "password_list": { "type": "string", "description": "name of lexical expression list with passwords", "value": "\"Decrypt ZIP passwords\"" },
             "scan_sophos": { "type": "boolean", "description": "scan contents with Sophos AV", "value": "false" },
             "scan_kaspersky": { "type": "boolean", "description": "scan contents with Kaspersky AV", "value": "false" },
             "scan_avira": { "type": "boolean", "description": "scan contents with Avira AV", "value": "false" },

@@ -1,4 +1,4 @@
-dmarc_report.py V2.0.0
+dmarc_report.py V3.0.0
 ======================
 
 Parse DMARC xml reports and write results to syslog.
@@ -18,3 +18,6 @@ destination d_dmarc_report {
 
 log { source(s_sys); filter(f_dmarc_report); destination(d_dmarc_report); };
 ```
+
+## Hold Areas
+* DMARC report: mails with errors

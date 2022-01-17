@@ -16,7 +16,7 @@
             "detected": { "primary": "deliver" }
         },
         "config": {
-            "name_address_list": { "type": "string", "description": "name of CS address list with internal domains", "value": "\"Internal Domains\"" },
+            "internal_list": { "type": "string", "description": "name of address list with internal domains", "value": "\"Internal Domains\"" },
             "internal_networks": { "type": "list of strings", "description": "list of internal network CIDR", "value": "[ \"40.92.0.0/15\", \"40.107.0.0/16\", \"52.100.0.0/14\", \"104.47.0.0/17\" ]" }
         }
     }

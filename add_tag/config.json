@@ -9,7 +9,7 @@
         "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Add tag\" %FILENAME% %LOGNAME% \"External command - add_tag\"",
         "responses": {
             "NONE": "Not modified",
-            "DETECTED": "Invalid encoding (%LOGTEXT%)",
+            "DETECTED": "Error (%LOGTEXT%)",
             "MODIFIED": "Tags added",
             "NOT_CHECKED": "Error (%LOGTEXT%)"
         },
@@ -18,9 +18,7 @@
         },
         "config": {
             "address_tag": { "type": "string", "description": "address tag for from, to and cc headers", "value": "\"[EXT]\"" },
-            "name_domain_list": { "type": "string", "description": "name of address list with internal domains which are excluded from address tagging of to/cc headers; empty string disables to/cc header address tagging", "value": "\"Internal Domains\"" },
-            "clean_text": { "type": "boolean", "description": "on removal also clean address tag from text body", "value": "true" },
-            "clean_html": { "type": "boolean", "description": "on removal also clean address tag from html body", "value": "true" },
+            "internal_list": { "type": "string", "description": "name of address list with internal domains which are excluded from address tagging of to/cc headers; empty string disables to/cc header address tagging", "value": "\"Internal Domains\"" },
             "subject_tag": { "type": "string", "description": "tag for subject", "value": "\"[EXTERNAL]\"" },
             "text_tag": { "type": "string", "description": "tag for text body", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
             "text_top": { "type": "boolean", "description": "insert text tag at top else at the bottom", "value": "true" },

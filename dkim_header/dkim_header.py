@@ -1,6 +1,6 @@
-# dkim_header.py V2.0.0
+# dkim_header.py V3.0.0
 #
-# Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -24,14 +24,14 @@ def run_command(input, log, config, additional):
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     match = re.search(r';\s?dkim="([^"]+)";', additional.spamlogic)
 
     if match is None:
         write_log(log, "Cannot extract DKIM check result from SpamLogic info")
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     del email[HEADER_DKIM]
 
@@ -43,6 +43,6 @@ def run_command(input, log, config, additional):
     except Exception:
         write_log(log, "Error writing '{}'".format(input))
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     return ReturnCode.MODIFIED

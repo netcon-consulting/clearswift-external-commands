@@ -15,7 +15,7 @@
             "modified": { "primary": "hold:Invalid private" }
         },
         "config": {
-            "max_size_kb": { "type": "integer", "description": "maximum mail size for private mails in kB", "value": "25" }
+            "max_size": { "type": "integer", "description": "maximum mail size for private mails in kB", "value": "25" }
         }
     }
 }

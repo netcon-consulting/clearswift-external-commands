@@ -1,13 +1,13 @@
-# check_internal.py V3.0.0
+# check_internal.py V4.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
 from ipaddress import IPv4Address, IPv4Network
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "name_address_list", "internal_networks" )
+CONFIG_PARAMETERS = ( "internal_list", "internal_networks" )
 
 def run_command(input, log, config, additional):
     """
@@ -102,7 +102,7 @@ def run_command(input, log, config, additional):
         return ReturnCode.ERROR
 
     try:
-        set_address = get_address_list(config.name_address_list)
+        set_address = set(address_list(config.internal_list))
     except Exception as ex:
         write_log(log, ex)
 

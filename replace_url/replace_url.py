@@ -1,15 +1,15 @@
-# replace_url.py V3.0.0
+# replace_url.py V4.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "name_expression_list", "url_replacement" )
+CONFIG_PARAMETERS = ( "keyword_list", "url_replacement" )
 
-PATTERN_URL = re.compile(r"([\s<([{\"]|^)+((https?://|www\.|ftp\.)[^\s>)\]}\"]+)([\s>)\]}\"]|$)+", re.IGNORECASE)
+PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]+)", re.IGNORECASE)
 
 def run_command(input, log, config, additional):
     """
@@ -28,14 +28,14 @@ def run_command(input, log, config, additional):
         return ReturnCode.ERROR
 
     try:
-        set_expression = get_expression_list(config.name_expression_list)
+        set_keyword = set(lexical_list(config.keyword_list))
     except Exception as ex:
         write_log(log, ex)
 
         return ReturnCode.ERROR
 
-    if not set_expression:
-        write_log(log, "Expression list is empty")
+    if not set_keyword:
+        write_log(log, "keyword list is empty")
 
         return ReturnCode.ERROR
 
@@ -51,43 +51,38 @@ def run_command(input, log, config, additional):
         if part_text is not None and part_html is not None:
             break
 
-    list_pattern = list()
+    set_pattern = { re.compile(keyword, re.IGNORECASE) for keyword in set_keyword }
 
-    for expression in set_expression:
-        list_pattern.append(re.compile(expression, re.IGNORECASE))
-
-    expression_found = False
+    keyword_found = False
 
     if part_text is not None:
         content_text = part_text.get_payload(decode=True).decode("utf-8", errors="ignore")
 
-        for pattern in list_pattern:
+        for pattern in set_pattern:
             match = re.search(pattern, content_text)
 
             if match:
-                expression_found = True
+                keyword_found = True
 
                 break
 
     if part_html is not None:
         content_html = part_html.get_payload(decode=True).decode("utf-8", errors="ignore")
 
-        if not expression_found:
+        if not keyword_found:
             text_html = html2text(content_html)
 
-            for pattern in list_pattern:
+            for pattern in set_pattern:
                 match = re.search(pattern, text_html)
 
                 if match:
-                    expression_found = True
+                    keyword_found = True
 
                     break
 
-    if expression_found:
+    if keyword_found:
         if part_text is not None:
-            set_url = { url for (_, url, _, _) in re.findall(PATTERN_URL, content_text) }
-
-            for url in set_url:
+            for url in { match.group(1) for match in re.findall(PATTERN_URL, content_text) }:
                 content_text = content_text.replace(url, config.url_replacement)
 
             part_text.set_payload(content_text)

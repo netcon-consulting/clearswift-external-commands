@@ -5,8 +5,11 @@
         },
         "responses": {
             "NONE": "DMARC report parsed",
-            "DETECTED": "dummy",
+            "DETECTED": "Error (%LOGTEXT%)",
             "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:DMARC report" }
         }
     }
 }

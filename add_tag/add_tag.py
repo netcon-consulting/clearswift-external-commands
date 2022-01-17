@@ -1,4 +1,4 @@
-# add_tag.py V1.0.1
+# add_tag.py V2.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,7 +7,7 @@ import re
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "address_tag", "name_domain_list", "clean_text", "clean_html", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id", "calendar_tag" )
+CONFIG_PARAMETERS = ( "address_tag", "internal_list", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id", "calendar_tag" )
 
 RECURSION_LIMIT = 5000
 
@@ -19,6 +19,9 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     """
+    if not (config.address_tag or config.subject_tag or config.text_tag or config.html_tag or config.calendar_tag):
+        return ReturnCode.NONE
+
     HEADER_CTE = "Content-Transfer-Encoding"
 
     try:
@@ -26,7 +29,7 @@ def run_command(input, log, config, additional):
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     sys.setrecursionlimit(RECURSION_LIMIT)
 
@@ -69,15 +72,15 @@ def run_command(input, log, config, additional):
 
                 email_modified = True
 
-        if config.name_domain_list:
+        if config.internal_list:
             # add address tag to external addresses in To/Cc header
 
             try:
-                set_address = get_address_list(config.name_domain_list)
+                set_address = set(address_list(config.internal_list))
             except Exception as ex:
                 write_log(log, ex)
 
-                return ReturnCode.ERROR
+                return ReturnCode.DETECTED
 
             pattern_domain = re.compile(r"^\S+@(\S+)")
 
@@ -280,7 +283,7 @@ def run_command(input, log, config, additional):
         except Exception:
             write_log(log, "Error writing '{}'".format(input))
 
-            return ReturnCode.ERROR
+            return ReturnCode.DETECTED
 
         return ReturnCode.MODIFIED
 

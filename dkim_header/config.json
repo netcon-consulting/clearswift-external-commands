@@ -6,8 +6,12 @@
         "parameters": "-t \"%ITEMTYPE%\" -c \"Config - DKIM header\" -a \"spamlogic=%SPAMLOGICFIELD%\" %FILENAME% %LOGNAME% \"External command - dkim_header\"",
         "responses": {
             "NONE": "Not modified",
+            "DETECTED": "Error (%LOGTEXT%)",
             "MODIFIED": "Header added",
             "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:DKIM header" }
         }
     }
 }

@@ -1,6 +1,6 @@
-# command_library.py V5.0.0
+# command_library.py V6.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 """
@@ -9,7 +9,9 @@ Collection of functions for Clearswift external commands.
 
 import enum
 from collections import namedtuple
-from email import message_from_binary_file, policy
+from email import message_from_binary_file, policy, errors
+from email.headerregistry import HeaderRegistry, BaseHeader
+from email._header_value_parser import TokenList, Terminal, _steal_trailing_WSP_if_exists, _fold_as_ew, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, SPECIALS
 from xml.sax import make_parser, handler
 from io import BytesIO
 import re
@@ -20,6 +22,7 @@ from bs4 import BeautifulSoup
 from dns.resolver import resolve
 
 CHARSET_UTF8 = "utf-8"
+
 BUFFER_TCP = 4096 # in bytes
 
 PATTERN_PROTOCOL = re.compile(r"^(https?://)(\S+)$", re.IGNORECASE)
@@ -37,16 +40,19 @@ CHARSET_EQUIVALENT = {
     "windows-874": "cp874",
 }
 
-@enum.unique
-class ListType(enum.IntEnum):
-    """
-    List type.
-    """
-    ADDRESS = 0
-    CONNECTION = 1
-    FILENAME = 2
-    URL = 3
-    LEXICAL = 4
+LIST_ADDRESS = "address"
+LIST_CONNECTION = "connection"
+LIST_FILENAME = "filename"
+LIST_URL = "url"
+LIST_LEXICAL = "lexical"
+
+LIST_INFO = {
+    LIST_ADDRESS: TupleInfo(tag_attribute=None, tag_table="AddressListTable", tag_list="AddressList", tag_item="Address"),
+    LIST_CONNECTION: TupleInfo(tag_attribute=None, tag_table="TLSEndPointCollection", tag_list="TLSEndPoint", tag_item="Host"),
+    LIST_FILENAME: TupleInfo(tag_attribute=None, tag_table="FilenameListTable", tag_list="FilenameList", tag_item="Filename"),
+    LIST_URL: TupleInfo(tag_attribute=None, tag_table="UrlListTable", tag_list="UrlList", tag_item="Url"),
+    LIST_LEXICAL: TupleInfo(tag_attribute="text", tag_table="TextualAnalysisCollection", tag_list="TextualAnalysis", tag_item="Phrase")
+}
 
 class HandlerValue(HandlerBase):
     """
@@ -93,63 +99,187 @@ class HandlerValue(HandlerBase):
         elif name == self.tag_table:
             raise SAXExceptionFinished
 
-def get_list(list_type, regex_list=".*", regex_item=".*", last_config="/var/cs-gateway/deployments/lastAppliedConfiguration.xml"):
+class Header(TokenList):
+    token_type = "header"
+
+    def fold(self, *, policy):
+        maxlen = policy.max_line_length or sys.maxsize
+
+        if policy.utf8:
+            encoding = "utf-8"
+        else:
+            encoding = "us-ascii"
+
+        lines = [""]
+
+        last_ew = None
+
+        wrap_as_ew_blocked = 0
+
+        want_encoding = False
+
+        end_ew_not_allowed = Terminal("", "wrap_as_ew_blocked")
+
+        parts = list(self)
+
+        while parts:
+            part = parts.pop(0)
+
+            if part is end_ew_not_allowed:
+                wrap_as_ew_blocked -= 1
+
+                continue
+
+            tstr = str(part)
+
+            if part.token_type == "ptext" and set(tstr) & SPECIALS:
+                want_encoding = True
+
+            try:
+                tstr.encode(encoding)
+                charset = encoding
+            except UnicodeEncodeError:
+                if any(isinstance(x, errors.UndecodableBytesDefect) for x in part.all_defects):
+                    charset = "unknown-8bit"
+                else:
+                    charset = "utf-8"
+
+                want_encoding = True
+
+            if want_encoding and not wrap_as_ew_blocked:
+                if not part.as_ew_allowed:
+                    want_encoding = False
+
+                    last_ew = None
+
+                    if part.syntactic_break:
+                        encoded_part = part.fold(policy=policy)[:-len(policy.linesep)]
+
+                        if policy.linesep not in encoded_part:
+                            if len(encoded_part) > maxlen - len(lines[-1]):
+                                newline = _steal_trailing_WSP_if_exists(lines)
+
+                                lines.append(newline)
+
+                            lines[-1] += encoded_part
+
+                            continue
+
+                if not hasattr(part, "encode"):
+                    parts = list(part) + parts
+                else:
+                    last_ew = _fold_as_ew(tstr, lines, maxlen, last_ew, part.ew_combine_allowed, charset)
+
+                want_encoding = False
+                continue
+
+            if len(tstr) <= maxlen - len(lines[-1]):
+                lines[-1] += tstr
+
+                continue
+
+            if (part.syntactic_break and len(tstr) + 1 <= maxlen):
+                newline = _steal_trailing_WSP_if_exists(lines)
+
+                if newline or part.startswith_fws():
+                    lines.append(newline + tstr)
+
+                    last_ew = None
+
+                    continue
+
+            if not hasattr(part, "encode"):
+                newparts = list(part)
+
+                if not part.as_ew_allowed:
+                    wrap_as_ew_blocked += 1
+
+                    newparts.append(end_ew_not_allowed)
+
+                parts = newparts + parts
+
+                continue
+
+            if part.as_ew_allowed and not wrap_as_ew_blocked:
+                parts.insert(0, part)
+
+                want_encoding = True
+
+                continue
+
+            newline = _steal_trailing_WSP_if_exists(lines)
+
+            if newline or part.startswith_fws():
+                lines.append(newline + tstr)
+            else:
+                lines[-1] += tstr
+
+        return policy.linesep.join(lines) + policy.linesep
+
+class BaseHeaderCustom(BaseHeader):
+    def fold(self, *, policy):
+        header = Header([ HeaderLabel([ ValueTerminal(self.name, "header-name"), ValueTerminal(":", "header-sep") ]), ])
+
+        if self._parse_tree:
+            header.append(CFWSList([ WhiteSpaceTerminal(" ", "fws") ]))
+
+        header.append(self._parse_tree)
+
+        return header.fold(policy=policy)
+
+def get_list(list_type, regex_list, regex_item, last_config=LAST_CONFIG):
     """
     Extract address lists from CS config filtered by regex matches on list name and item.
 
-    :type list_type: ListType
+    :type list_type: str
     :type regex_list: str
     :type regex_item: str
     :type last_config: str
     :rtype: list
     """
-    if (list_type == ListType.ADDRESS):
-        address_handler = HandlerValue("AddressListTable", "AddressList", "Address", regex_list, regex_item)
-    elif (list_type == ListType.CONNECTION):
-        address_handler = HandlerValue("TLSEndPointCollection", "TLSEndPoint", "Host", regex_list, regex_item)
-    elif (list_type == ListType.FILENAME):
-        address_handler = HandlerValue("FilenameListTable", "FilenameList", "Filename", regex_list, regex_item)
-    elif (list_type == ListType.URL):
-        address_handler = HandlerValue("UrlListTable", "UrlList", "Url", regex_list, regex_item)
-    elif (list_type == ListType.LEXICAL):
-        address_handler = HandlerAttribute("text", "TextualAnalysisCollection", "TextualAnalysis", "Phrase", regex_list, regex_item)
+    list_info = LIST_INFO[list_type]
+
+    if list_info.tag_attribute is None:
+        handler = HandlerValue(list_info.tag_table, list_info.tag_list, list_info.tag_item, regex_list, regex_item)
+    else:
+        handler = HandlerAttribute(list_info.tag_attribute, list_info.tag_table, list_info.tag_list, list_info.tag_item, regex_list, regex_item)
 
     parser = make_parser()
-    parser.setContentHandler(address_handler)
+    parser.setContentHandler(handler)
 
     try:
         parser.parse(last_config)
     except SAXExceptionFinished:
         pass
 
-    return address_handler.getLists()
+    return handler.getLists()
 
-def get_address_list(name_list):
+def address_list(name_list):
     """
-    Extract address list from CS config and return as set.
-
-    :type name_list: str
-    :rtype: set
-    """
-    return { item for (_, list_item) in get_list(ListType.ADDRESS, regex_list="^{}$".format(name_list)) for item in list_item }
-
-def get_expression_list(name_list):
-    """
-    Extract expression list from CS config and return as set.
+    Extract address list from CS config.
 
     :type name_list: str
-    :rtype: set
+    :rtype: list
     """
-    return { item for (_, list_item) in get_list(ListType.LEXICAL, regex_list="^{}$".format(name_list)) for item in list_item }
+    return get_list(LIST_ADDRESS, "^{}$".format(name_list), ".*")
 
-def get_url_list(name_list):
+def lexical_list(name_list):
     """
-    Extract URL list from CS config and return as set.
+    Extract lexical expression list from CS config.
 
     :type name_list: str
-    :rtype: set
+    :rtype: list
     """
-    return { item for (_, list_item) in get_list(ListType.URL, regex_list="^{}$".format(name_list)) for item in list_item }
+    return get_list(LIST_LEXICAL, "^{}$".format(name_list), ".*")
+
+def url_list(name_list):
+    """
+    Extract URL list from CS config.
+
+    :type name_list: str
+    :rtype: list
+    """
+    return get_list(LIST_URL, "^{}$".format(name_list), ".*")
 
 def read_file(path_file, ignore_errors=False):
     """
@@ -175,6 +305,35 @@ def read_file(path_file, ignore_errors=False):
 
     return content
 
+def python_charset(charset):
+    """
+    Convert charset name unsupported by Python to equivalent charset name supported by Python.
+
+    :type charset: str
+    :rtype: str
+    """
+    if charset is not None:
+        lower = charset.lower()
+
+        if lower in CHARSET_EQUIVALENT:
+            return CHARSET_EQUIVALENT[lower]
+
+    return charset
+
+def get_text_content(part, errors="replace"):
+    """
+    Get text content from message part.
+
+    :type part: EmailMessage
+    :type errors: str
+    :rtype: str
+    """
+    content = part.get_payload(decode=True)
+
+    charset = python_charset(part.get_param("charset", "ascii"))
+
+    return content.decode(charset, errors=errors)
+
 def read_email(path_email):
     """
     Parse email file.
@@ -182,9 +341,12 @@ def read_email(path_email):
     :type path_email: str
     :rtype: email.message.Message
     """
+    email_policy = policy.default.clone(header_factory=HeaderRegistry(base_class=BaseHeaderCustom))
+    email_policy.content_manager.add_get_handler("text", get_text_content)
+
     try:
         with open(path_email, "rb") as f:
-            email = message_from_binary_file(f, policy=policy.default.clone(refold_source="none"))
+            email = message_from_binary_file(f, policy=email_policy)
     except Exception:
         raise Exception("Cannot parse email")
 
@@ -488,21 +650,6 @@ def domain_blacklisted(domain):
             return reputation.query_domain
 
     return None
-
-def python_charset(charset):
-    """
-    Convert charset name unsupported by Python to equivalent charset name supported by Python.
-
-    :type charset: str
-    :rtype: str
-    """
-    if charset is not None:
-        lower = charset.lower()
-
-        if lower in CHARSET_EQUIVALENT:
-            return CHARSET_EQUIVALENT[lower]
-
-    return charset
 
 def url2regex(url):
     """

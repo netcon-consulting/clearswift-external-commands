@@ -1,6 +1,6 @@
-# fix_charset.py V3.0.0
+# fix_charset.py V4.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -24,7 +24,7 @@ def run_command(input, log, config, additional):
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     for part in email.walk():
         if part.get_content_type() == "text/html":
@@ -52,7 +52,7 @@ def run_command(input, log, config, additional):
                         except Exception:
                             write_log(log, "Error writing '{}'".format(input))
 
-                            return ReturnCode.ERROR
+                            return ReturnCode.DETECTED
 
                         return ReturnCode.MODIFIED
 

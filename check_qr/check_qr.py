@@ -1,6 +1,6 @@
-# check_qr.py V2.0.0
+# check_qr.py V3.0.0
 #
-# Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -8,7 +8,7 @@ from PIL import Image
 from pyzbar.pyzbar import decode
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "name_url_blacklist", "name_url_whitelist" )
+CONFIG_PARAMETERS = ( "url_blacklist", "url_whitelist" )
 
 def run_command(input, log, config, additional):
     """
@@ -39,7 +39,7 @@ def run_command(input, log, config, additional):
 
         if text is not None and re.search(PATTERN_URL, text) is not None:
             try:
-                set_url = get_url_list(config.name_url_blacklist)
+                set_url = set(url_list(config.url_blacklist))
             except Exception as ex:
                 write_log(log, ex)
 
@@ -48,7 +48,7 @@ def run_command(input, log, config, additional):
             set_blacklist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_url }
 
             try:
-                set_url = get_url_list(config.name_url_whitelist)
+                set_url = set(url_list(config.url_whitelist))
             except Exception as ex:
                 write_log(log, ex)
 
@@ -65,7 +65,7 @@ def run_command(input, log, config, additional):
                 else:
                     for pattern in set_blacklist:
                         if re.search(pattern, url) is not None:
-                            write_log(log, "'{}' listed on '{}'".format(url, config.name_url_blacklist))
+                            write_log(log, "'{}' listed on '{}'".format(url, config.url_blacklist))
 
                             return ReturnCode.DETECTED
 
