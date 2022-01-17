@@ -1,4 +1,4 @@
-# rewrite_url.py V1.0.0
+# rewrite_url.py V1.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -83,7 +83,7 @@ def run_command(input, log, config, additional):
 
         body_modified = False
 
-        for url in { match.group(1) for match in re.findall(PATTERN_URL, content) }
+        for url in re.findall(PATTERN_URL, content):
             url_original = url
 
             if config.redirect_list:
