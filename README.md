@@ -22,3 +22,4 @@ Installation of external commands recommended with the install script: https://g
 * fix_charset: set charset in meta tag in html body to charset defined in content-type header
 * remove_tag: remove tags in address and subject headers, text and html bodies and calendar objects
 * replace_url: replace URLs in text and html body if one of the keywords is found
+* rewrite_url: rewrite URLs in text and html body by resolving redirects and replacing URL parts

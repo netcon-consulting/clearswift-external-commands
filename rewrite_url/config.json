@@ -1,0 +1,28 @@
+{
+    "Rewrite URL": {
+        "list_url": [
+            "Redirector domains"
+        ],
+        "list_lexical": [
+            "URL substitutions"
+        ],
+        "media_types": {
+            "SMTP": [ "not_protected" ]
+        },
+        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Rewrite URL\" %FILENAME% %LOGNAME% \"External command - rewrite_url\"",
+        "responses": {
+            "NONE": "Not modified",
+            "DETECTED": "Error (%LOGTEXT%)",
+            "MODIFIED": "URL rewritten",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Rewrite URL" }
+        },
+        "config": {
+            "redirect_list": { "type": "string", "description": "name of URL list with redirector domains", "value": "\"Redirector domains\"" },
+            "timeout": { "type": "integer", "description": "timeout for resolving redirects in seconds", "value": "5" },
+            "substitution_list": { "type": "string", "description": "name of lexical expression list with URL substitutions", "value": "\"URL substitutions\"" }
+        }
+    }
+}
