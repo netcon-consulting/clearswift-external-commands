@@ -1,4 +1,4 @@
-# rewrite_url.py V1.0.1
+# rewrite_url.py V1.0.2
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -63,7 +63,7 @@ def run_command(input, log, config, additional):
             return ReturnCode.DETECTED
 
         try:
-            dict_replace = { substitution.split("\n")[0]: substitution.split("\n")[1] for substitution in set_substitution }
+            dict_replace = { re.compile(substitution.split("\n")[0]): substitution.split("\n")[1] for substitution in set_substitution }
         except Exception:
             write_log(log, "Invalid substitution list")
 
