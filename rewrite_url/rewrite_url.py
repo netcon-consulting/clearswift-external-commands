@@ -1,4 +1,4 @@
-# rewrite_url.py V1.0.2
+# rewrite_url.py V1.1.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,6 +12,168 @@ ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "redirect_list", "timeout", "substitution_list" )
 
 PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]+)", re.IGNORECASE)
+
+def resolve_redirect(url, request_timeout):
+    """
+    Resolve redirect URL.
+
+    :type url: str
+    :type request_timeout: int
+    :rtype: str
+    """
+    try:
+        return urlopen(url, timeout=request_timeout).url
+    except timeout:
+        raise Exception("Timeout redirect '{}'".format(url))
+    except Exception:
+        raise Exception("Invalid redirect '{}'".format(url))
+
+def modify_text(content, set_redirect, dict_redirect, request_timeout, dict_replace):
+    """
+    Rewrite URLs in text body.
+
+    :type content: str
+    :type set_redirect: set
+    :type dict_redirect: dict
+    :type request_timeout: int
+    :type dict_replace: dict
+    :rtype: str or None
+    """
+    modified = False
+
+    for url in re.findall(PATTERN_URL, content):
+        url_original = url
+
+        if set_redirect is not None:
+            for pattern in set_redirect:
+                if re.search(pattern, url) is not None:
+                    if url in dict_redirect:
+                        url_redirect = dict_redirect[url]
+                    else:
+                        url_redirect = resolve_redirect(url)
+
+                        if url_redirect != url:
+                            dict_redirect[url] = url_redirect
+
+                    if url_redirect != url:
+                        url = url_redirect
+
+                        break
+
+        if dict_replace is not None:
+            for (pattern, replace) in dict_replace.items():
+                url_replace = re.sub(pattern, replace, url)
+
+                if url_replace != url:
+                    url = url_replace
+
+                    break
+
+        if url != url_original:
+            content = content.replace(url_original, url)
+
+            modified = True
+
+    if modified:
+        return content
+
+    return None
+
+def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, dict_replace):
+    """
+    Rewrite URLs in html body.
+
+    :type content: str
+    :type charset: str
+    :type set_redirect: set
+    :type dict_redirect: dict
+    :type request_timeout: int
+    :type dict_replace: dict
+    :rtype: str or None
+    """
+    soup = BeautifulSoup(content, features="html5lib")
+
+    href_modified = False
+
+    for url in { a["href"] for a in soup.findAll("a", href=True) }:
+        url_original = url
+
+        if set_redirect is not None:
+            for pattern in set_redirect:
+                if re.search(pattern, url) is not None:
+                    if url in dict_redirect:
+                        url_redirect = dict_redirect[url]
+                    else:
+                        url_redirect = resolve_redirect(url)
+
+                        if url_redirect != url:
+                            dict_redirect[url] = url_redirect
+
+                    if url_redirect != url:
+                        url = url_redirect
+
+                        break
+
+        if dict_replace is not None:
+            for (pattern, replace) in dict_replace.items():
+                url_replace = re.sub(pattern, replace, url)
+
+                if url_replace != url:
+                    url = url_replace
+
+                    break
+
+        if url != url_original:
+            for a in soup.find_all("a", href=url_original):
+                a["href"] = url
+
+                if a.string == url_original:
+                    a.string = url
+
+            href_modified = True
+
+    if href_modified:
+        try:
+            content = soup.encode(charset).decode(charset)
+        except Exception:
+            raise Exception("Error converting soup to string")
+
+    text_modified = False
+
+    for url in re.findall(PATTERN_URL, html2text(content)):
+        url_original = url
+
+        if set_redirect is not None:
+            for pattern in set_redirect:
+                if re.search(pattern, url) is not None:
+                    if url in dict_redirect:
+                        url_redirect = dict_redirect[url]
+                    else:
+                        url_redirect = resolve_redirect(url)
+
+                    if url_redirect != url:
+                        url = url_redirect
+
+                        break
+
+        if dict_replace is not None:
+            for (pattern, replace) in dict_replace.items():
+                url_replace = re.sub(pattern, replace, url)
+
+                if url_replace != url:
+                    url = url_replace
+
+                    break
+
+        if url != url_original:
+            content = content.replace(url_original, url)
+
+            text_modified = True
+
+    if href_modified or text_modified:
+        return content
+
+    return None
 
 def run_command(input, log, config, additional):
     """
@@ -48,6 +210,10 @@ def run_command(input, log, config, additional):
         set_redirect = { re.compile(url2regex(url), re.IGNORECASE) for url in set_redirect }
 
         dict_redirect = dict()
+    else:
+        set_redirect = None
+
+        dict_redirect = None
 
     if config.substitution_list:
         try:
@@ -68,6 +234,8 @@ def run_command(input, log, config, additional):
             write_log(log, "Invalid substitution list")
 
             return ReturnCode.DETECTED
+    else:
+        dict_replace = None
 
     email_modified = False
 
@@ -81,47 +249,14 @@ def run_command(input, log, config, additional):
     if part is not None:
         (part, charset, content) = part
 
-        body_modified = False
+        try:
+            content = modify_text(content, set_redirect, dict_redirect, config.timeout, dict_replace)
+        except Exception as ex:
+            write_log(log, ex)
 
-        for url in re.findall(PATTERN_URL, content):
-            url_original = url
+            return ReturnCode.DETECTED
 
-            if config.redirect_list:
-                for pattern in set_redirect:
-                    if re.search(pattern, url) is not None:
-                        try:
-                            url_redirect = urlopen(url, timeout=config.timeout).url
-                        except timeout:
-                            write_log(log, "Timeout redirect '{}'".format(url))
-
-                            return ReturnCode.DETECTED
-                        except Exception:
-                            write_log(log, "Invalid redirect '{}'".format(url))
-
-                            return ReturnCode.DETECTED
-
-                        if url_redirect != url:
-                            dict_redirect[url] = url_redirect
-
-                            url = url_redirect
-
-                            break
-
-            if config.substitution_list:
-                for (pattern, replace) in dict_replace.items():
-                    url_replace = re.sub(pattern, replace, url)
-                    
-                    if url_replace != url:
-                        url = url_replace
-
-                        break
-
-            if url != url_original:
-                content = content.replace(url_original, url)
-
-                body_modified = True
-
-        if body_modified:
+        if content is not None:
             part.set_payload(content, charset=charset)
 
             email_modified = True
@@ -136,58 +271,14 @@ def run_command(input, log, config, additional):
     if part is not None:
         (part, charset, content) = part
 
-        body_modified = False
+        try:
+            content = modify_html(content, charset, set_redirect, dict_redirect, config.timeout, dict_replace)
+        except Exception as ex:
+            write_log(log, ex)
 
-        soup = BeautifulSoup(content, features="html5lib")
+            return ReturnCode.DETECTED
 
-        for url in { a["href"] for a in soup.findAll("a", href=True) }:
-            url_original = url
-            
-            if config.redirect_list:
-                for pattern in set_redirect:
-                    if re.search(pattern, url) is not None:
-                        if config.redirect_list and url in dict_redirect:
-                            url_redirect = dict_redirect[url]
-                        else:
-                            try:
-                                url_redirect = urlopen(url, timeout=config.timeout).url
-                            except timeout:
-                                write_log(log, "Timeout redirect '{}'".format(url))
-
-                                return ReturnCode.DETECTED
-                            except Exception:
-                                write_log(log, "Invalid redirect '{}'".format(url))
-
-                                return ReturnCode.DETECTED
-
-                        if url_redirect != url:
-                            url = url_redirect
-
-                            break
-
-            if config.substitution_list:
-                for (pattern, replace) in dict_replace.items():
-                    url_replace = re.sub(pattern, replace, url)
-                    
-                    if url_replace != url:
-                        url = url_replace
-
-                        break
-
-            if url != url_original:
-                for a in soup.find_all("a", href=url_original):
-                    a["href"] = url
-
-                body_modified = True
-
-        if body_modified:
-            try:
-                content = soup.encode(charset).decode(charset)
-            except Exception:
-                write_log(log, "Error converting soup to string")
-
-                return ReturnCode.DETECTED
-
+        if content is not None:
             part.set_payload(content, charset=charset)
 
             email_modified = True
