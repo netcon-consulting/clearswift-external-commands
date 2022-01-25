@@ -1,4 +1,4 @@
-add_tag.py V3.0.0
+add_tag.py V3.0.1
 =================
 
 Add tags in address and subject headers, text and html bodies and calendar objects.

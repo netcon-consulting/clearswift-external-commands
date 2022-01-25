@@ -1,4 +1,4 @@
-# add_tag.py V3.0.0
+# add_tag.py V3.0.1
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -194,7 +194,7 @@ def run_command(input, log, config, additional):
         if part is not None:
             (part, charset, content) = part
 
-            annotation_content = '<div id="{}">{}</div>'.format(config.html_id, annotation(config.annotation_html).html))
+            annotation_content = '<div id="{}">{}</div>'.format(config.html_id, annotation(config.html_tag).html)
 
             content = annotate_html(content, annotation_content)
 
