@@ -20,9 +20,11 @@
             "detected": { "primary": "hold:Rewrite URL" }
         },
         "config": {
-            "redirect_list": { "type": "string", "description": "name of URL list with redirector domains", "value": "\"Redirector domains\"" },
+            "redirect_list": { "type": "string", "description": "name of URL list with redirector domains (empty for disabling resolving redirects)", "value": "\"Redirector domains\"" },
             "timeout": { "type": "integer", "description": "timeout for resolving redirects in seconds", "value": "5" },
-            "substitution_list": { "type": "string", "description": "name of lexical expression list with URL substitutions", "value": "\"URL substitutions\"" }
+            "substitution_list": { "type": "string", "description": "name of lexical expression list with URL substitutions (empty for disabling replacing URL parts)", "value": "\"URL substitutions\"" },
+            "annotation_text": { "type": "string", "description": "name of annotation applied to modified text body (empty for disabling annotating text body)", "value": "\"\"" },
+            "annotation_html": { "type": "string", "description": "name of annotation applied to modified html body (empty for disabling annotating html body)", "value": "\"\"" }
         }
     }
 }

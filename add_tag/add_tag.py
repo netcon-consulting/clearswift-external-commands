@@ -1,4 +1,4 @@
-# add_tag.py V2.0.0
+# add_tag.py V3.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,7 +7,7 @@ import re
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "address_tag", "internal_list", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_tag_id", "calendar_tag" )
+CONFIG_PARAMETERS = ( "address_tag", "internal_list", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_id", "calendar_tag" )
 
 RECURSION_LIMIT = 5000
 
@@ -21,8 +21,6 @@ def run_command(input, log, config, additional):
     """
     if not (config.address_tag or config.subject_tag or config.text_tag or config.html_tag or config.calendar_tag):
         return ReturnCode.NONE
-
-    HEADER_CTE = "Content-Transfer-Encoding"
 
     try:
         email = read_email(input)
@@ -166,12 +164,14 @@ def run_command(input, log, config, additional):
         if part is not None:
             (part, charset, content) = part
 
-            if config.text_top:
-                content = config.text_tag + content
-            else:
-                content += config.text_tag
+            annotation_content = annotation(config.text_tag).text
 
-            if charset != CHARSET_UTF8 and not string_ascii(config.text_tag):
+            if config.text_top:
+                content = annotation_content + content
+            else:
+                content += annotation_content
+
+            if charset != CHARSET_UTF8 and not string_ascii(annotation_content):
                 charset = CHARSET_UTF8
 
             if HEADER_CTE in part:
@@ -194,34 +194,17 @@ def run_command(input, log, config, additional):
         if part is not None:
             (part, charset, content) = part
 
-            if config.html_top:
-                match = re.search(r"<body[^>]*>", content)
+            annotation_content = '<div id="{}">{}</div>'.format(config.html_id, annotation(config.annotation_html).html))
 
-                if match is not None:
-                    index = match.end()
-                else:
-                    match = re.search(r"<html[^>]*>", content)
+            content = annotate_html(content, annotation_content)
 
-                    if match is not None:
-                        index = match.end()
-                    else:
-                        index = 0
-            else:
-                index = content.find("</body>")
-
-                if index < 0:
-                    index = content.find("</html>")
-
-                    if index < 0:
-                        index = len(content) - 1
+            if charset != CHARSET_UTF8 and not string_ascii(annotation_content):
+                charset = CHARSET_UTF8
 
             if HEADER_CTE in part:
                 del part[HEADER_CTE]
 
-            if charset != CHARSET_UTF8 and not string_ascii(config.html_tag):
-                charset = CHARSET_UTF8
-
-            part.set_payload(content[:index] + '<div id="{}">{}</div>'.format(config.html_tag_id, config.html_tag) + content[index:], charset=charset)
+            part.set_payload(content, charset=charset)
 
             email_modified = True
 

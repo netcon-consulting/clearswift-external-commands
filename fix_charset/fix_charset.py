@@ -17,8 +17,6 @@ def run_command(input, log, config, additional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     """
-    HEADER_CTE = "Content-Transfer-Encoding"
-
     try:
         email = read_email(input)
     except Exception as ex:

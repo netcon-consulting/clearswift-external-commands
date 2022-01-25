@@ -1,4 +1,4 @@
-# remove_tag.py V2.0.0
+# remove_tag.py V3.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,7 +7,7 @@ import re
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "address_tag", "clean_text", "clean_html", "subject_tag", "text_tag", "html_tag", "html_tag_id", "calendar_tag" )
+CONFIG_PARAMETERS = ( "address_tag", "clean_text", "clean_html", "subject_tag", "text_tag", "html_id", "calendar_tag" )
 
 RECURSION_LIMIT = 5000
 
@@ -20,10 +20,8 @@ def run_command(input, log, config, additional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     """
-    if not (config.address_tag or config.subject_tag or config.text_tag or config.html_tag or config.calendar_tag):
+    if not (config.address_tag or config.subject_tag or config.text_tag or config.html_id or config.calendar_tag):
         return ReturnCode.NONE
-
-    HEADER_CTE = "Content-Transfer-Encoding"
 
     try:
         email = read_email(input)
@@ -115,7 +113,7 @@ def run_command(input, log, config, additional):
             body_modified = False
 
             if config.text_tag:
-                split_tag = config.text_tag.split("\n")
+                split_tag = annotation(config.text_tag).text.split("\n")
 
                 while not split_tag[-1]:
                     del split_tag[-1]
@@ -142,7 +140,7 @@ def run_command(input, log, config, additional):
 
                 email_modified = True
 
-    if (config.html_tag or (config.address_tag and config.clean_html)):
+    if (config.html_id or (config.address_tag and config.clean_html)):
         # remove html body tag and address tag from html body
 
         try:
@@ -159,7 +157,7 @@ def run_command(input, log, config, additional):
 
             soup = bs4.BeautifulSoup(content, features="html5lib")
 
-            list_tag = soup.find_all("div", id=re.compile(r".*{}.*".format(re.escape(config.html_tag_id))))
+            list_tag = soup.find_all("div", id=re.compile(r".*{}.*".format(re.escape(config.html_id))))
 
             if list_tag:
                 for tag in list_tag:

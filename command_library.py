@@ -1,4 +1,4 @@
-# command_library.py V6.0.1
+# command_library.py V6.1.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -17,11 +17,14 @@ from io import BytesIO
 import re
 from subprocess import run, PIPE, DEVNULL
 from socket import socket, AF_INET, SOCK_STREAM
+from urllib.parse import unquote
 import pyzipper
 from bs4 import BeautifulSoup
 from dns.resolver import resolve
 
 CHARSET_UTF8 = "utf-8"
+
+HEADER_CTE = "Content-Transfer-Encoding"
 
 BUFFER_TCP = 4096 # in bytes
 
@@ -55,6 +58,8 @@ LIST_INFO = {
     LIST_URL: TupleInfo(tag_attribute=None, tag_table="UrlListTable", tag_list="UrlList", tag_item="Url"),
     LIST_LEXICAL: TupleInfo(tag_attribute="text", tag_table="TextualAnalysisCollection", tag_list="TextualAnalysis", tag_item="Phrase")
 }
+
+TupleAnnotation = namedtuple("TupleAnnotation", "text html")
 
 class HandlerValue(HandlerBase):
     """
@@ -100,6 +105,63 @@ class HandlerValue(HandlerBase):
             self.name_list = None
         elif name == self.tag_table:
             raise SAXExceptionFinished
+
+class HandlerAnnotation(handler.ContentHandler):
+    """
+    Custom content handler for annotations.
+    """
+    def __init__(self, regex_annotation):
+        """
+        :type regex_item: str
+        """
+        self.pattern_annotation = re.compile(regex_annotation)
+        self.list_annotation = list()
+        self.name_annotation = None
+        self.text = None
+        self.html = None
+
+        super().__init__()
+
+    def startElement(self, name, attrs):
+        if self.name_annotation is not None and name == "Plain":
+            self.text = ""
+        elif self.name_annotation is not None and name == "Html":
+            self.html = ""
+        elif name == "Annotation" and "name" in attrs:
+            name_annotation = attrs["name"]
+
+            if re.search(self.pattern_annotation, name_annotation):
+                self.name_annotation = name_annotation
+
+    def characters(self, content):
+        if self.text is not None:
+            self.text += content
+        elif self.html is not None:
+            self.html += content
+
+    def endElement(self, name):
+        if self.name_annotation is not None and name == "Plain":
+            self.annotation_text = unquote(self.text)
+
+            self.text = None
+        elif self.name_annotation is not None and name == "Html":
+            self.annotation_html = self.html
+
+            self.html = None
+        elif name == "Annotation" and self.name_annotation is not None:
+            self.list_annotation.append(TupleAnnotation(text=self.annotation_text, html=self.annotation_html))
+
+            self.name_annotation = None
+        elif name == "AnnotationCollection":
+            raise SAXExceptionFinished
+
+    def getAnnotations(self):
+        """
+        Return list of annotations.
+
+        :rtype: list
+        """
+        return self.list_annotation
 
 class Header(TokenList):
     token_type = "header"
@@ -297,6 +359,40 @@ def url_list(name_list):
         return extracted_list[0][1]
     else:
         raise Exception("URL list '{}' does not exist".format(name_list))
+
+def get_annotation(regex_annotation, last_config=LAST_CONFIG):
+    """
+    Extract annotations from CS config filtered by regex match on annotation name.
+
+    :type regex_annotation: str
+    :type last_config: str
+    :rtype: list
+    """
+    handler = HandlerAnnotation(regex_annotation)
+
+    parser = make_parser()
+    parser.setContentHandler(handler)
+
+    try:
+        parser.parse(last_config)
+    except SAXExceptionFinished:
+        pass
+
+    return handler.getAnnotations()
+
+def annotation(name_annotation):
+    """
+    Extract annotation from CS config.
+
+    :type name_annotation: str
+    :rtype: TupleAnnotation
+    """
+    extracted_annotation = get_annotation("^{}$".format(name_annotation))
+
+    if extracted_annotation:
+        return extracted_annotation[0]
+    else:
+        raise Exception("Annotation '{}' does not exist".format(name_annotation))
 
 def read_file(path_file, ignore_errors=False):
     """
@@ -714,3 +810,35 @@ def extract_part(email, content_type):
             return (part, charset, content)
 
     return None
+
+def annotate_html(content, annotation, on_top=True):
+    """
+    Annotate html body.
+
+    :type content: str
+    :type annotation: str
+    :type on_top: bool
+    :rtype: str
+    """
+    if on_top:
+        match = re.search(r"<body[^>]*>", content)
+
+        if match is not None:
+            index = match.end()
+        else:
+            match = re.search(r"<html[^>]*>", content)
+
+            if match is not None:
+                index = match.end()
+            else:
+                index = 0
+    else:
+        index = content.find("</body>")
+
+        if index < 0:
+            index = content.find("</html>")
+
+            if index < 0:
+                index = len(content) - 1
+
+    return content[:index] + annotation + content[index:]

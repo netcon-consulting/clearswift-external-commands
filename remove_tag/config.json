@@ -17,14 +17,13 @@
             "detected": { "primary": "hold:Remove tag" }
         },
         "config": {
-            "address_tag": { "type": "string", "description": "address tag for from, to and cc headers", "value": "\"[EXT]\"" },
-            "clean_text": { "type": "boolean", "description": "on removal also clean address tag from text body", "value": "true" },
-            "clean_html": { "type": "boolean", "description": "on removal also clean address tag from html body", "value": "true" },
-            "subject_tag": { "type": "string", "description": "tag for subject", "value": "\"[EXTERNAL]\"" },
-            "text_tag": { "type": "string", "description": "tag for text body", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
-            "html_tag": { "type": "string", "description": "tag for html body", "value": "\"###### EXTERNAL SENDER ######\\n\"" },
-            "html_tag_id": { "type": "string", "description": "ID of html tag", "value": "\"tag_mail_1\"" },
-            "calendar_tag": { "type": "string", "description": "calendar tag for organizer field", "value": "\"[EXT]\"" }
+            "address_tag": { "type": "string", "description": "address tag for from, to and cc headers (empty for disabling address untagging)", "value": "\"[EXT]\"" },
+            "clean_text": { "type": "boolean", "description": "clean text body on address tag removal", "value": "true" },
+            "clean_html": { "type": "boolean", "description": "clean html body on address tag removal", "value": "true" },
+            "subject_tag": { "type": "string", "description": "tag for subject header (empty for disabling subject untagging)", "value": "\"[EXTERNAL]\"" },
+            "text_tag": { "type": "string", "description": "name of annotation for tagging text body (empty for disabling text body untagging)", "value": "\"\"" },
+            "html_id": { "type": "string", "description": "ID of html tag (empty for disabling html body untagging)", "value": "\"tag_mail_1\"" },
+            "calendar_tag": { "type": "string", "description": "calendar tag for organizer field (empty for disabling calendar untagging)", "value": "\"[EXT]\"" }
         }
     }
 }

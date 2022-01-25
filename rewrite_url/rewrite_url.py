@@ -1,4 +1,4 @@
-# rewrite_url.py V1.1.0
+# rewrite_url.py V2.0.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -9,7 +9,7 @@ from socket import timeout
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
-CONFIG_PARAMETERS = ( "redirect_list", "timeout", "substitution_list" )
+CONFIG_PARAMETERS = ( "redirect_list", "timeout", "substitution_list", "annotation_text", "annotation_html" )
 
 PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]+)", re.IGNORECASE)
 
@@ -50,7 +50,7 @@ def modify_text(content, set_redirect, dict_redirect, request_timeout, dict_repl
                     if url in dict_redirect:
                         url_redirect = dict_redirect[url]
                     else:
-                        url_redirect = resolve_redirect(url)
+                        url_redirect = resolve_redirect(url, request_timeout)
 
                         if url_redirect != url:
                             dict_redirect[url] = url_redirect
@@ -104,7 +104,7 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
                     if url in dict_redirect:
                         url_redirect = dict_redirect[url]
                     else:
-                        url_redirect = resolve_redirect(url)
+                        url_redirect = resolve_redirect(url, request_timeout)
 
                         if url_redirect != url:
                             dict_redirect[url] = url_redirect
@@ -149,7 +149,7 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
                     if url in dict_redirect:
                         url_redirect = dict_redirect[url]
                     else:
-                        url_redirect = resolve_redirect(url)
+                        url_redirect = resolve_redirect(url, request_timeout)
 
                     if url_redirect != url:
                         url = url_redirect
@@ -257,6 +257,17 @@ def run_command(input, log, config, additional):
             return ReturnCode.DETECTED
 
         if content is not None:
+            if config.annotation_text:
+                annotation_content = annotation(config.annotation_text).text
+
+                content = annotation_content + content
+
+                if charset != CHARSET_UTF8 and not string_ascii(annotation_content):
+                    charset = CHARSET_UTF8
+
+            if HEADER_CTE in part:
+                del part[HEADER_CTE]
+
             part.set_payload(content, charset=charset)
 
             email_modified = True
@@ -279,6 +290,17 @@ def run_command(input, log, config, additional):
             return ReturnCode.DETECTED
 
         if content is not None:
+            if config.annotation_html:
+                annotation_content = annotation(config.annotation_html).html
+
+                content = annotate_html(content, annotation_content)
+
+                if charset != CHARSET_UTF8 and not string_ascii(annotation_content):
+                    charset = CHARSET_UTF8
+
+            if HEADER_CTE in part:
+                del part[HEADER_CTE]
+
             part.set_payload(content, charset=charset)
 
             email_modified = True
