@@ -1,4 +1,4 @@
-# rewrite_url.py V2.0.0
+# rewrite_url.py V2.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -127,7 +127,7 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
             for a in soup.find_all("a", href=url_original):
                 a["href"] = url
 
-                if a.string == url_original:
+                if a.text == url_original:
                     a.string = url
 
             href_modified = True

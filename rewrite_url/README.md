@@ -1,4 +1,4 @@
-rewrite_url.py V2.0.0
+rewrite_url.py V2.0.1
 =====================
 
 Rewrite URLs in text and html body by resolving redirects and replacing URL parts.
