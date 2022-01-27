@@ -1,4 +1,4 @@
-# rewrite_url.py V2.0.1
+# rewrite_url.py V2.0.2
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -258,7 +258,12 @@ def run_command(input, log, config, additional):
 
         if content is not None:
             if config.annotation_text:
-                annotation_content = annotation(config.annotation_text).text
+                try:
+                    annotation_content = annotation(config.annotation_text).text
+                except Exception as ex:
+                    write_log(log, ex)
+
+                    return ReturnCode.DETECTED
 
                 content = annotation_content + content
 
@@ -291,7 +296,12 @@ def run_command(input, log, config, additional):
 
         if content is not None:
             if config.annotation_html:
-                annotation_content = annotation(config.annotation_html).html
+                try:
+                    annotation_content = annotation(config.annotation_html).html
+                except Exception as ex:
+                    write_log(log, ex)
+
+                    return ReturnCode.DETECTED
 
                 content = annotate_html(content, annotation_content)
 
