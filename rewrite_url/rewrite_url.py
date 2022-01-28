@@ -1,17 +1,20 @@
-# rewrite_url.py V2.0.2
+# rewrite_url.py V2.1.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 from socket import timeout
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "redirect_list", "timeout", "substitution_list", "annotation_text", "annotation_html" )
 
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.66 Safari/537.36"
+
 PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]+)", re.IGNORECASE)
+PATTERN_STRIP = re.compile(r"^https?://(\S+)$", re.IGNORECASE)
 
 def resolve_redirect(url, request_timeout):
     """
@@ -22,7 +25,7 @@ def resolve_redirect(url, request_timeout):
     :rtype: str
     """
     try:
-        return urlopen(url, timeout=request_timeout).url
+        return urlopen(Request(url, headers={ "User-Agent": USER_AGENT }), timeout=request_timeout).url
     except timeout:
         raise Exception("Timeout redirect '{}'".format(url))
     except Exception:
@@ -124,11 +127,24 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
                     break
 
         if url != url_original:
+            match = re.search(PATTERN_STRIP, url_original)
+
+            if match is None:
+                url_strip = None
+            else:
+                url_strip = match.group(1)
+
             for a in soup.find_all("a", href=url_original):
                 a["href"] = url
 
-                if a.text == url_original:
+                if a.text == url_original or a.text == url_strip:
                     a.string = url
+
+                if a.has_attr("title"):
+                    title = a["title"]
+
+                    if title == url_original or title == url_strip:
+                        a["title"] = url
 
             href_modified = True
 

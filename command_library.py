@@ -1,4 +1,4 @@
-# command_library.py V6.1.0
+# command_library.py V6.1.1
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -141,7 +141,7 @@ class HandlerAnnotation(handler.ContentHandler):
 
     def endElement(self, name):
         if self.name_annotation is not None and name == "Plain":
-            self.annotation_text = unquote(self.text)
+            self.annotation_text = unquote(self.text.replace("+", " "))
 
             self.text = None
         elif self.name_annotation is not None and name == "Html":
