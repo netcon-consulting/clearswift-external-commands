@@ -1,4 +1,4 @@
-# command_library.py V6.1.1
+# command_library.py V6.2.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -28,7 +28,9 @@ HEADER_CTE = "Content-Transfer-Encoding"
 
 BUFFER_TCP = 4096 # in bytes
 
+PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]+)", re.IGNORECASE)
 PATTERN_PROTOCOL = re.compile(r"^(https?://)(\S+)$", re.IGNORECASE)
+PATTERN_DOMAIN = re.compile(r"^(?:https?://)?([^/]+)", re.IGNORECASE)
 
 TupleReputation = namedtuple("TupleReputation", "query_domain record_type match")
 
@@ -842,3 +844,39 @@ def annotate_html(content, annotation, on_top=True):
                 index = len(content) - 1
 
     return content[:index] + annotation + content[index:]
+
+def url_blacklisted(url, set_whitelist, set_blacklist):
+    """
+    Check URL is blacklisted.
+
+    :type url: str
+    :type set_whitelist: set
+    :type set_blacklist: set
+    :rtype: tuple or None
+    """
+    if set_whitelist is not None:
+        for pattern in set_whitelist:
+            if re.search(pattern, url) is not None:
+                return None
+
+    if set_blacklist is not None:
+        for pattern in set_blacklist:
+            if re.search(pattern, url) is not None:
+                return tuple()
+
+    domain = re.search(PATTERN_DOMAIN, url).group(1).lower()
+
+    while True:
+        blacklist = domain_blacklisted(domain)
+
+        if blacklist is not None:
+            return ( domain, blacklist )
+
+        index = domain.find(".")
+
+        if index < 0:
+            break
+
+        domain = domain[index + 1:]
+
+    return None

@@ -9,8 +9,6 @@ from bs4 import BeautifulSoup
 ADDITIONAL_ARGUMENTS = ( )
 CONFIG_PARAMETERS = ( "keyword_list", "url_replacement" )
 
-PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]+)", re.IGNORECASE)
-
 def run_command(input, log, config, additional):
     """
     Replace URLs in text and html body if one of the keywords is found.
@@ -82,7 +80,7 @@ def run_command(input, log, config, additional):
 
     if keyword_found:
         if part_text is not None:
-            for url in { match.group(1) for match in re.findall(PATTERN_URL, content_text) }:
+            for url in re.findall(PATTERN_URL, content_text):
                 content_text = content_text.replace(url, config.url_replacement)
 
             part_text.set_payload(content_text)

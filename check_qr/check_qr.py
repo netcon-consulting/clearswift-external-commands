@@ -1,4 +1,4 @@
-# check_qr.py V3.0.0
+# check_qr.py V3.1.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -19,9 +19,6 @@ def run_command(input, log, config, additional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     """
-    PATTERN_URL = re.compile(r"(https?://|www\.|ftp\.)\S+", re.IGNORECASE)
-    PATTERN_DOMAIN = re.compile(r"^(https?://)?([^/]+)\S*$", re.IGNORECASE)
-
     try:
         image = Image.open(input)
     except Exception:
@@ -31,59 +28,54 @@ def run_command(input, log, config, additional):
 
     list_qr = decode(image)
 
-    for qr_code in list_qr:
-        try:
-            text = qr_code.data.decode(CHARSET_UTF8)
-        except Exception:
-            text = None
+    if list_qr:
+        set_url = set()
 
-        if text is not None and re.search(PATTERN_URL, text) is not None:
+        for qr_code in list_qr:
             try:
-                set_url = set(url_list(config.url_blacklist))
-            except Exception as ex:
-                write_log(log, ex)
+                set_url |= set(re.finditer(PATTERN_URL, qr_code.data.decode(CHARSET_UTF8)))
+            except Exception:
+                pass
 
-                return ReturnCode.ERROR
+        if set_url:
+            if config.url_blacklist:
+                try:
+                    set_blacklist = set(url_list(config.url_blacklist))
+                except Exception as ex:
+                    write_log(log, ex)
 
-            set_blacklist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_url }
+                    return ReturnCode.ERROR
 
-            try:
-                set_url = set(url_list(config.url_whitelist))
-            except Exception as ex:
-                write_log(log, ex)
+                set_blacklist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_blacklist }
+            else:
+                set_blacklist = None
 
-                return ReturnCode.ERROR
+            if config.url_whitelist:
+                try:
+                    set_whitelist = set(url_list(config.url_whitelist))
+                except Exception as ex:
+                    write_log(log, ex)
 
-            set_whitelist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_url }
+                    return ReturnCode.ERROR
 
-            for match in re.finditer(PATTERN_URL, text):
-                url = match.group()
+                set_whitelist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_whitelist }
+            else:
+                set_whitelist = None
 
-                for pattern in set_whitelist:
-                    if re.search(pattern, url) is not None:
-                        break
-                else:
-                    for pattern in set_blacklist:
-                        if re.search(pattern, url) is not None:
-                            write_log(log, "'{}' listed on '{}'".format(url, config.url_blacklist))
+            set_clean = set()
 
-                            return ReturnCode.DETECTED
+            for url in set_url:
+                if url not in set_clean:
+                    result = url_blacklisted(url, set_whitelist, set_blacklist)
 
-                    domain = re.search(PATTERN_DOMAIN, url).group(2).lower()
+                    if result is not None:
+                        if result:
+                            write_log(log, "'{}' listed on '{}'".format(result[0], result[1]))
 
-                    while True:
-                        blacklist = domain_blacklisted(domain)
+                        write_log(log, "'{}' listed on '{}'".format(url, config.url_blacklist))
 
-                        if blacklist is not None:
-                            write_log(log, "'{}' listed on '{}'".format(domain, blacklist))
+                        return ReturnCode.DETECTED
 
-                            return ReturnCode.DETECTED
-
-                        index = domain.find(".")
-
-                        if index < 0:
-                            break
-
-                        domain = domain[index + 1:]
+                    set_clean.add(url)
 
     return ReturnCode.NONE
