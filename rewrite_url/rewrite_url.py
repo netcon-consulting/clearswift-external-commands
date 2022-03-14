@@ -1,4 +1,4 @@
-# rewrite_url.py V3.0.0
+# rewrite_url.py V3.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -64,7 +64,7 @@ def modify_text(content, set_redirect, dict_redirect, request_timeout, set_white
     """
     modified = False
 
-    for url in re.findall(PATTERN_URL, content):
+    for url in set(re.findall(PATTERN_URL, content)):
         url_original = url
 
         if set_redirect is not None:
@@ -170,7 +170,7 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
                 a["href"] = url
 
                 if a.text == url_original or a.text == url_strip:
-                    a.string = url
+                    a.string.replace_with(url)
 
                 if a.has_attr("title"):
                     title = a["title"]
@@ -188,7 +188,7 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
 
     text_modified = False
 
-    for url in re.findall(PATTERN_URL, html2text(content)):
+    for url in set(re.findall(PATTERN_URL, html2text(content))):
         url_original = url
 
         if set_redirect is not None:
@@ -221,9 +221,16 @@ def modify_html(content, charset, set_redirect, dict_redirect, request_timeout, 
                     break
 
         if url != url_original:
-            content = content.replace(url_original, url)
+            for tag in soup.findAll(text=re.compile(url_original)):
+                tag.string.replace_with(tag.text.replace(url_original, url))
 
             text_modified = True
+
+    if text_modified:
+        try:
+            content = soup.encode(charset).decode(charset)
+        except Exception:
+            raise Exception("Error converting soup to string")
 
     if html_modified or text_modified:
         return content
