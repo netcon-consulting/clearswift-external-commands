@@ -1,6 +1,6 @@
-# encrypt_mail.py V3.0.0
+# encrypt_mail.py V4.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -10,6 +10,7 @@ from email.message import EmailMessage
 import smtplib
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "keyword_encryption", "password_length", "password_punctuation" )
 
 MESSAGE_RECIPIENT="You have received an encrypted email from {} attached to this email.\n\nThe password will be provided to you by the sender shortly.\n\nHave a nice day."
@@ -17,7 +18,7 @@ MESSAGE_SENDER="The email has been encrypted with the password {} and sent.\n\nP
 
 PORT_SMTP=10026
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender.
 
@@ -25,6 +26,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         email = read_email(input)

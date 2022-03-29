@@ -1,4 +1,4 @@
-# decrypt_pdf.py V3.0.0
+# decrypt_pdf.py V4.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -8,9 +8,10 @@ from shutil import copyfile
 import fitz
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "password_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Attempt to decrypt PDF using a provided list of passwords and optionally scan contents with AV and removes encryption.
 
@@ -18,6 +19,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         set_password = set(lexical_list(config.password_list))

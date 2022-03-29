@@ -1,6 +1,6 @@
-# run_command.py V1.0.0
+# run_command.py V2.0.0
 #
-# Copyright (c) 2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import enum
@@ -15,6 +15,8 @@ DESCRIPTION = "run external command"
 LAST_CONFIG = "/var/cs-gateway/deployments/lastAppliedConfiguration.xml"
 
 DEFAULT_LIBRARY = "External command library"
+
+PATTERN_ARGUMENT = re.compile(r"^([^=]+)=(.*)")
 
 @enum.unique
 class ReturnCode(enum.IntEnum):
@@ -149,6 +151,30 @@ def extract_config(config, config_parameters):
 
     return TupleConfig(**config)
 
+def extract_argument(argument):
+    """
+    Extract key and value from argument.
+
+    :type argument: str
+    :rtype: tuple
+    """
+    match = re.search(PATTERN_ARGUMENT, argument)
+
+    if match is None:
+        raise Exception("Invalid argument '{}'".format(argument))
+
+    argument_key = match.group(1)
+
+    if not argument_key:
+        raise Exception("Argument key missing in '{}'".format(argument))
+
+    argument_value = match.group(2)
+
+    if not argument_value:
+        raise Exception("Argument value missing in '{}'".format(argument))
+
+    return ( argument_key, argument_value )
+
 def extract_additional(additional, additional_arguments):
     """
     Extract additional arguments and check all required arguments are defined.
@@ -160,26 +186,11 @@ def extract_additional(additional, additional_arguments):
     arguments_defined = dict()
 
     if additional is not None:
-        pattern_argument = re.compile(r"^([^=]+)=(.*)")
-
         for argument in additional:
-            match = re.search(pattern_argument, argument)
+            (argument_key, argument_value) = extract_argument(argument)
 
-            if match is None:
-                raise Exception("Invalid additional argument '{}'".format(argument))
-            else:
-                argument_key = match.group(1)
-
-                if not argument_key:
-                    raise Exception("Additional argument key missing")
-
-                if argument_key in additional_arguments:
-                    argument_value = match.group(2)
-
-                    if not argument_value:
-                        raise Exception("Additional argument value missing for key '{}'".format(argument_key))
-
-                    arguments_defined[argument_key] = argument_value
+            if argument_key in additional_arguments:
+                arguments_defined[argument_key] = argument_value
 
     # check for missing arguments
     arguments_missing = additional_arguments - arguments_defined.keys()
@@ -190,6 +201,23 @@ def extract_additional(additional, additional_arguments):
     TupleAdditional = namedtuple("TupleAdditional", additional_arguments)
 
     return TupleAdditional(**arguments_defined)
+
+def extract_optional(optional):
+    """
+    Extract optional arguments.
+
+    :type optional: list
+    :rtype: dict
+    """
+    dict_optional = dict()
+
+    if optional is not None:
+        for argument in optional:
+            (argument_key, argument_value) = extract_argument(argument)
+
+            dict_optional[argument_key] = argument_value
+
+    return dict_optional
 
 def main(args):
     if args.type is not None and args.type != "Message":
@@ -218,7 +246,6 @@ def main(args):
     library = None
     command = None
     config = None
-    additional = None
 
     for (name, list_item) in handler_list.getLists():
         if name == args.library:
@@ -272,8 +299,20 @@ def main(args):
             write_log(args.log, ex)
 
             return ReturnCode.ERROR
+    else:
+        additional = None
 
-    return run_command(args.input, args.log, config, additional)
+    if OPTIONAL_ARGUMENTS:
+        try:
+            optional = extract_optional(args.optional)
+        except Exception as ex:
+            write_log(args.log, ex)
+
+            return ReturnCode.ERROR
+    else:
+        optional = None
+
+    return run_command(args.input, args.log, config, additional, optional)
 
 if __name__ == "__main__":
     parser = ArgumentParser(description=DESCRIPTION)
@@ -284,6 +323,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--config", metavar="CONFIG", type=str, default=None, help="name of external command config lexical list (default=None)")
     parser.add_argument("-t", "--type", metavar="TYPE", type=str, default=None, help="message part type (default=None)")
     parser.add_argument("-a", "--additional", metavar="ADDITIONAL", action="append", type=str, help="additional arguments in 'key=value' format (default=None)")
+    parser.add_argument("-o", "--optional", metavar="OPTIONAL", action="append", type=str, help="optional arguments in 'key=value' format (default=None)")
 
     args = parser.parse_args()
 

@@ -1,4 +1,4 @@
-# command_library.py V6.2.0
+# command_library.py V6.2.1
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -28,7 +28,7 @@ HEADER_CTE = "Content-Transfer-Encoding"
 
 BUFFER_TCP = 4096 # in bytes
 
-PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._-]+(?:/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]*[A-Za-z0-9_~/#[\]@$&()*+%=-])?)", re.IGNORECASE)
+PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._-]+[A-Za-z0-9](?:/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]*[A-Za-z0-9_~/#[\]@$&()*+%=-])?)", re.IGNORECASE)
 PATTERN_PROTOCOL = re.compile(r"^(https?://)(\S+)$", re.IGNORECASE)
 PATTERN_DOMAIN = re.compile(r"^(?:https?://)?([^/]+)", re.IGNORECASE)
 

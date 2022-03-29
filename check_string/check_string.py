@@ -1,12 +1,13 @@
-# check_string.py V3.0.0
+# check_string.py V4.0.0
 #
-# Copyright (c) 2020-2021 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "search_strings", )
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Check raw email data for combination of strings.
 
@@ -14,6 +15,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         email = read_email(input)

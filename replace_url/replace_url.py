@@ -1,4 +1,4 @@
-# replace_url.py V4.0.0
+# replace_url.py V5.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,9 +7,10 @@ import re
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "keyword_list", "url_replacement" )
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Replace URLs in text and html body if one of the keywords is found.
 
@@ -17,6 +18,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         email = read_email(input)

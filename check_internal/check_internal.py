@@ -1,4 +1,4 @@
-# check_internal.py V4.0.0
+# check_internal.py V5.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,9 +7,10 @@ import re
 from ipaddress import IPv4Address, IPv4Network
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "internal_list", "internal_networks" )
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Check whether sender IP is in internal networks and sender domain is internal domain.
 
@@ -17,6 +18,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         email = read_email(input)

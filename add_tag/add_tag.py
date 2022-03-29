@@ -1,4 +1,4 @@
-# add_tag.py V3.0.1
+# add_tag.py V4.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,17 +7,20 @@ import re
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "address_tag", "internal_list", "subject_tag", "text_tag", "text_top", "html_tag", "html_top", "html_id", "calendar_tag" )
 
 RECURSION_LIMIT = 5000
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Add tags in address and subject headers, text and html bodies and calendar objects.
 
     :type input: str
     :type log: str
     :type config: TupleConfig
+    :type additional: TupleAdditional
+    :type optional: dict
     """
     if not (config.address_tag or config.subject_tag or config.text_tag or config.html_tag or config.calendar_tag):
         return ReturnCode.NONE

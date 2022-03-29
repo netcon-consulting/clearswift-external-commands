@@ -1,4 +1,4 @@
-# fix_charset.py V4.0.0
+# fix_charset.py V5.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -6,9 +6,10 @@
 import re
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( )
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Set charset in meta tag in html body to charset defined in content-type header.
 
@@ -16,6 +17,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         email = read_email(input)

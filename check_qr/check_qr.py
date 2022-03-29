@@ -1,4 +1,4 @@
-# check_qr.py V3.1.0
+# check_qr.py V4.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -8,9 +8,10 @@ from PIL import Image
 from pyzbar.pyzbar import decode
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "url_blacklist", "url_whitelist" )
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists.
 
@@ -18,6 +19,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     try:
         image = Image.open(input)

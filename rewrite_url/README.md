@@ -1,4 +1,4 @@
-rewrite_url.py V3.0.1
+rewrite_url.py V4.0.0
 =====================
 
 Rewrite URLs in text and html body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
@@ -10,6 +10,7 @@ Rewrite URLs in text and html body by resolving redirects (and optionally check 
 * url_blacklist (string): name of URL blacklist (empty for no custom blacklist)
 * url_whitelist (string): name of URL whitelist (empty for no custom whitelist)
 * substitution_list (string): name of lexical expression list with URL substitutions (empty for disabling replacing URL parts)
+* token_list (string): name of lexical expression list with substitution tokens (empty for disabling substitution tokens)
 * annotation_text (string): name of annotation applied to modified text body (empty for disabling annotating text body)
 * annotation_html (string): name of annotation applied to modified html body (empty for disabling annotating html body)
 
@@ -20,6 +21,7 @@ Rewrite URLs in text and html body by resolving redirects (and optionally check 
 
 ## Lexical expression lists
 * URL substitutions: list of URL substitutions (regex and replacement separated by newline)
+* Substitution tokens: list of substitution tokens
 
 ## Hold Areas
 * Rewrite URL: mails with errors

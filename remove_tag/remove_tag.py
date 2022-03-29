@@ -1,4 +1,4 @@
-# remove_tag.py V3.0.0
+# remove_tag.py V4.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,11 +7,12 @@ import re
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "address_tag", "clean_text", "clean_html", "subject_tag", "text_tag", "html_id", "calendar_tag" )
 
 RECURSION_LIMIT = 5000
 
-def run_command(input, log, config, additional):
+def run_command(input, log, config, additional, optional):
     """
     Remove tags in address and subject headers, text and html bodies and calendar objects.
 
@@ -19,6 +20,7 @@ def run_command(input, log, config, additional):
     :type log: str
     :type config: TupleConfig
     :type additional: TupleAdditional
+    :type optional: dict
     """
     if not (config.address_tag or config.subject_tag or config.text_tag or config.html_id or config.calendar_tag):
         return ReturnCode.NONE

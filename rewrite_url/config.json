@@ -6,7 +6,8 @@
             "URL whitelist"
         ],
         "list_lexical": [
-            "URL substitutions"
+            "URL substitutions",
+            "Substitution tokens"
         ],
         "media_types": {
             "SMTP": [ "not_protected" ]
@@ -28,6 +29,7 @@
             "url_blacklist": { "type": "string", "description": "name of URL blacklist (empty for no custom blacklist)", "value": "\"URL blacklist\"" },
             "url_whitelist": { "type": "string", "description": "name of URL whitelist (empty for no custom whitelist)", "value": "\"URL whitelist\"" },
             "substitution_list": { "type": "string", "description": "name of lexical expression list with URL substitutions (empty for disabling replacing URL parts)", "value": "\"URL substitutions\"" },
+            "token_list": { "type": "string", "description": "name of lexical expression list with substitution tokens (empty for disabling substitution tokens)", "value": "\"Substitution tokens\"" },
             "annotation_text": { "type": "string", "description": "name of annotation applied to modified text body (empty for disabling annotating text body)", "value": "\"\"" },
             "annotation_html": { "type": "string", "description": "name of annotation applied to modified html body (empty for disabling annotating html body)", "value": "\"\"" }
         }
