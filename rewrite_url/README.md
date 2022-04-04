@@ -1,9 +1,10 @@
-rewrite_url.py V4.0.0
+rewrite_url.py V5.0.0
 =====================
 
 Rewrite URLs in text and html body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
 
 ## Parameters
+* exception_list (string): name of URL list with URLs that will not be rewritten (empty for disabling rewrite exceptions)
 * redirect_list (string): name of URL list with redirector domains (empty for disabling resolving redirects)
 * timeout (integer): timeout for resolving redirects in seconds
 * check_redirect (boolean): check if resolved redirect URLs are blacklisted

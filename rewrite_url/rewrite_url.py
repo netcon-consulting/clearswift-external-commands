@@ -1,16 +1,17 @@
-# rewrite_url.py V4.0.0
+# rewrite_url.py V5.0.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
 from urllib.request import urlopen, Request
+from urllib.parse import quote
 from socket import timeout
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = True
-CONFIG_PARAMETERS = ( "redirect_list", "timeout", "check_redirect", "url_blacklist", "url_whitelist", "substitution_list", "token_list", "annotation_text", "annotation_html" )
+CONFIG_PARAMETERS = ( "exception_list", "redirect_list", "timeout", "check_redirect", "url_blacklist", "url_whitelist", "substitution_list", "token_list", "annotation_text", "annotation_html" )
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.66 Safari/537.36"
 
@@ -91,11 +92,12 @@ def modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist,
 
     return url
 
-def modify_text(content, dict_modified, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace):
+def modify_text(content, set_exception, dict_modified, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace):
     """
     Rewrite URLs in text body.
 
     :type content: str
+    :type set_exception: set
     :type dict_modified: dict
     :type set_redirect: set
     :type request_timeout: int
@@ -109,15 +111,19 @@ def modify_text(content, dict_modified, set_redirect, request_timeout, set_white
     dict_url = dict()
 
     for url in set(re.findall(PATTERN_URL, content)):
-        if url in dict_modified:
-            dict_url[url] = dict_modified[url]
+        for pattern in set_exception:
+            if re.search(pattern, url) is not None:
+                break
         else:
-            url_modified = modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace)
+            if url in dict_modified:
+                dict_url[url] = dict_modified[url]
+            else:
+                url_modified = modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace)
 
-            if url_modified != url:
-                dict_modified[url] = url_modified
+                if url_modified != url:
+                    dict_modified[url] = url_modified
 
-                dict_url[url] = url_modified
+                    dict_url[url] = url_modified
 
     if dict_url:
         index_shift = 0
@@ -136,12 +142,13 @@ def modify_text(content, dict_modified, set_redirect, request_timeout, set_white
 
     return None
 
-def modify_html(content, charset, dict_modified, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace):
+def modify_html(content, charset, set_exception, dict_modified, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace):
     """
     Rewrite URLs in html body.
 
     :type content: str
     :type charset: str
+    :type set_exception: set
     :type dict_modified: dict
     :type set_redirect: set
     :type request_timeout: int
@@ -157,41 +164,45 @@ def modify_html(content, charset, dict_modified, set_redirect, request_timeout, 
     content_modified = False
 
     for url in { a["href"] for a in soup.findAll("a", href=True) }:
-        modified = False
-
-        if url in dict_modified:
-            url_modified = dict_modified[url]
-
-            modified = True
+        for pattern in set_exception:
+            if re.search(pattern, url) is not None:
+                break
         else:
-            url_modified = modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace)
+            modified = False
 
-            if url_modified != url:
-                dict_modified[url] = url_modified
+            if url in dict_modified:
+                url_modified = dict_modified[url]
 
                 modified = True
-
-        if modified:
-            match = re.search(PATTERN_STRIP, url)
-
-            if match is None:
-                url_strip = None
             else:
-                url_strip = match.group(1)
+                url_modified = modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace)
 
-            for a in soup.find_all("a", href=url):
-                a["href"] = url_modified
+                if url_modified != url:
+                    dict_modified[url] = url_modified
 
-                if a.text == url or a.text == url_strip:
-                    a.string.replace_with(url_modified)
+                    modified = True
 
-                if a.has_attr("title"):
-                    title = a["title"]
+            if modified:
+                match = re.search(PATTERN_STRIP, url)
 
-                    if title == url or title == url_strip:
-                        a["title"] = url_modified
+                if match is None:
+                    url_strip = None
+                else:
+                    url_strip = match.group(1)
 
-            content_modified = True
+                for a in soup.find_all("a", href=url):
+                    a["href"] = url_modified
+
+                    if a.text == url or a.text == url_strip:
+                        a.string.replace_with(url_modified)
+
+                    if a.has_attr("title"):
+                        title = a["title"]
+
+                        if title == url or title == url_strip:
+                            a["title"] = url_modified
+
+                content_modified = True
 
     if content_modified:
         try:
@@ -202,15 +213,19 @@ def modify_html(content, charset, dict_modified, set_redirect, request_timeout, 
     dict_url = dict()
 
     for url in set(re.findall(PATTERN_URL, html2text(content))):
-        if url in dict_modified:
-            dict_url[url] = dict_modified[url]
+        for pattern in set_exception:
+            if re.search(pattern, url) is not None:
+                break
         else:
-            url_modified = modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace)
+            if url in dict_modified:
+                dict_url[url] = dict_modified[url]
+            else:
+                url_modified = modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace)
 
-            if url_modified != url:
-                dict_modified[url] = url_modified
+                if url_modified != url:
+                    dict_modified[url] = url_modified
 
-                dict_url[url] = url_modified
+                    dict_url[url] = url_modified
 
     if dict_url:
         for tag in soup.findAll(text=PATTERN_URL):
@@ -261,6 +276,18 @@ def run_command(input, log, config, additional, optional):
         write_log(log, ex)
 
         return ReturnCode.DETECTED
+
+    if config.exception_list:
+        try:
+            set_exception = set(url_list(config.exception_list))
+        except Exception as ex:
+            write_log(log, ex)
+
+            return ReturnCode.ERROR
+
+        set_exception = { re.compile(url2regex(url), re.IGNORECASE) for url in set_exception }
+    else:
+        set_exception = set()
 
     dict_modified = dict()
 
@@ -364,7 +391,7 @@ def run_command(input, log, config, additional, optional):
                     token = TEMPLATE_TOKEN.format(token)
 
                     if token in replace:
-                        replace = replace.replace(token, value)
+                        replace = replace.replace(token, quote(value))
 
                         modified = True
 
@@ -386,7 +413,7 @@ def run_command(input, log, config, additional, optional):
         (part, charset, content) = part
 
         try:
-            content = modify_text(content, dict_modified, set_redirect, config.timeout, set_whitelist, set_blacklist, set_checked, config.url_blacklist, dict_replace)
+            content = modify_text(content, set_exception, dict_modified, set_redirect, config.timeout, set_whitelist, set_blacklist, set_checked, config.url_blacklist, dict_replace)
         except Exception as ex:
             write_log(log, ex)
 
@@ -424,7 +451,7 @@ def run_command(input, log, config, additional, optional):
         (part, charset, content) = part
 
         try:
-            content = modify_html(content, charset, dict_modified, set_redirect, config.timeout, set_whitelist, set_blacklist, set_checked, config.url_blacklist, dict_replace)
+            content = modify_html(content, charset, set_exception, dict_modified, set_redirect, config.timeout, set_whitelist, set_blacklist, set_checked, config.url_blacklist, dict_replace)
         except Exception as ex:
             write_log(log, ex)
 

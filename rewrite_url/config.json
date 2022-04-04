@@ -1,6 +1,7 @@
 {
     "Rewrite URL": {
         "list_url": [
+            "Rewrite exceptions",
             "Redirector domains",
             "URL blacklist",
             "URL whitelist"
@@ -23,6 +24,7 @@
             "detected": { "primary": "hold:Rewrite URL" }
         },
         "config": {
+            "exception_list": { "type": "string", "description": "name of URL list with URLs that will not be rewritten (empty for disabling rewrite exceptions)", "value": "\"Rewrite exceptions\"" },
             "redirect_list": { "type": "string", "description": "name of URL list with redirector domains (empty for disabling resolving redirects)", "value": "\"Redirector domains\"" },
             "timeout": { "type": "integer", "description": "timeout for resolving redirects in seconds", "value": "5" },
             "check_redirect": { "type": "boolean", "description": "check if resolved redirect URLs are blacklisted", "value": "true" },
