@@ -1,4 +1,4 @@
-# rewrite_url.py V5.0.0
+# rewrite_url.py V5.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -163,7 +163,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
     content_modified = False
 
-    for url in { a["href"] for a in soup.findAll("a", href=True) }:
+    for url in { a["href"] for a in soup.findAll("a", href=re.compile(r"^(?!mailto:).+", re.IGNORECASE)) }:
         for pattern in set_exception:
             if re.search(pattern, url) is not None:
                 break
