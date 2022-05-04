@@ -3,7 +3,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Encrypt mail\" %FILENAME% %LOGNAME% \"External command - encrypt_mail\"",
+        "parameters": "-i \"%ITEMID%\" -c \"Config - Encrypt mail\" %FILENAME% %LOGNAME% \"External command - encrypt_mail\"",
         "timeout": 120,
         "responses": {
             "NONE": "Encryption skipped",

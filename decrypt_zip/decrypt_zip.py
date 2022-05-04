@@ -1,4 +1,4 @@
-# decrypt_zip.py V5.0.0
+# decrypt_zip.py V6.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,7 +12,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "password_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
 
-def run_command(input, log, config, additional, optional):
+def run_command(input, log, config, additional, optional, disable_folding):
     """
     Attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption.
 
@@ -21,6 +21,7 @@ def run_command(input, log, config, additional, optional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
+    :type disable_folding: bool
     """
     try:
         set_password = set(lexical_list(config.password_list))

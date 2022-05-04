@@ -1,4 +1,4 @@
-# rewrite_url.py V5.0.1
+# rewrite_url.py V6.0.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -257,7 +257,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
     return None
 
-def run_command(input, log, config, additional, optional):
+def run_command(input, log, config, additional, optional, disable_folding):
     """
     Rewrite URLs in text and html body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
 
@@ -266,12 +266,13 @@ def run_command(input, log, config, additional, optional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
+    :type disable_folding: bool
     """
     if not (config.redirect_list or config.substitution_list):
         return ReturnCode.NONE
 
     try:
-        email = read_email(input)
+        email = read_email(input, disable_folding)
     except Exception as ex:
         write_log(log, ex)
 

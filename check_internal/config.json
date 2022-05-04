@@ -6,7 +6,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Check internal\" %FILENAME% %LOGNAME% \"External command - check_internal\"",
+        "parameters": "-i \"%ITEMID%\" -c \"Config - Check internal\" %FILENAME% %LOGNAME% \"External command - check_internal\"",
         "responses": {
             "NONE": "External sender",
             "DETECTED": "Internal sender",

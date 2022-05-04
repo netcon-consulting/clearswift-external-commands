@@ -1,4 +1,4 @@
-# command_library.py V6.2.1
+# command_library.py V7.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -449,14 +449,19 @@ def get_text_content(part, errors="replace"):
 
     return content.decode(charset, errors=errors)
 
-def read_email(path_email):
+def read_email(path_email, disable_folding):
     """
     Parse email file.
 
     :type path_email: str
+    :type disable_folding: bool
     :rtype: email.message.Message
     """
-    email_policy = policy.default.clone(header_factory=HeaderRegistry(base_class=BaseHeaderCustom))
+    if disable_folding:
+        email_policy = policy.default.clone(header_factory=HeaderRegistry(base_class=BaseHeaderCustom))
+    else:
+        email_policy = policy.default
+
     email_policy.content_manager.add_get_handler("text", get_text_content)
 
     try:

@@ -1,4 +1,4 @@
-# dmarc_report.py V4.0.0
+# dmarc_report.py V5.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -13,7 +13,7 @@ CONFIG_PARAMETERS = ( )
 
 TEMPLATE_SYSLOG = Template("org=$name_org, id=$id_report, begin=$date_begin, end=$date_end, domain=$domain, ip=$ip_source, count=$count, disposition=$disposition, dkim=$dkim, spf=$spf")
 
-def run_command(input, log, config, additional, optional):
+def run_command(input, log, config, additional, optional, disable_folding):
     """
     Parse DMARC xml reports and write results to syslog.
 
@@ -22,6 +22,7 @@ def run_command(input, log, config, additional, optional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
+    :type disable_folding: bool
     """
     try:
         xml_report = read_file(input, ignore_errors=True)

@@ -1,4 +1,4 @@
-dkim_header.py V4.0.0
+dkim_header.py V5.0.0
 =====================
 
 Add header with result of SpamLogic DKIM check.

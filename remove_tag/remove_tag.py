@@ -1,4 +1,4 @@
-# remove_tag.py V4.0.0
+# remove_tag.py V5.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,7 +12,7 @@ CONFIG_PARAMETERS = ( "address_tag", "clean_text", "clean_html", "subject_tag", 
 
 RECURSION_LIMIT = 5000
 
-def run_command(input, log, config, additional, optional):
+def run_command(input, log, config, additional, optional, disable_folding):
     """
     Remove tags in address and subject headers, text and html bodies and calendar objects.
 
@@ -21,12 +21,13 @@ def run_command(input, log, config, additional, optional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
+    :type disable_folding: bool
     """
     if not (config.address_tag or config.subject_tag or config.text_tag or config.html_id or config.calendar_tag):
         return ReturnCode.NONE
 
     try:
-        email = read_email(input)
+        email = read_email(input, disable_folding)
     except Exception as ex:
         write_log(log, ex)
 

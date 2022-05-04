@@ -1,4 +1,4 @@
-# dkim_header.py V4.0.0
+# dkim_header.py V5.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -11,7 +11,7 @@ CONFIG_PARAMETERS = ( )
 
 HEADER_DKIM = "x-dkim-check"
 
-def run_command(input, log, config, additional, optional):
+def run_command(input, log, config, additional, optional, disable_folding):
     """
     Add header with result of SpamLogic DKIM check.
 
@@ -20,9 +20,10 @@ def run_command(input, log, config, additional, optional):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
+    :type disable_folding: bool
     """
     try:
-        email = read_email(input)
+        email = read_email(input, disable_folding)
     except Exception as ex:
         write_log(log, ex)
 

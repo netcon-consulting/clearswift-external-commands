@@ -1,4 +1,4 @@
-# run_command.py V2.0.0
+# run_command.py V3.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -220,7 +220,7 @@ def extract_optional(optional):
     return dict_optional
 
 def main(args):
-    if args.type is not None and args.type != "Message":
+    if args.id is not None and args.id != "0":
         # skip embedded/attached SMTP messages
         return ReturnCode.NONE
 
@@ -312,7 +312,7 @@ def main(args):
     else:
         optional = None
 
-    return run_command(args.input, args.log, config, additional, optional)
+    return run_command(args.input, args.log, config, additional, optional, args.disable_folding)
 
 if __name__ == "__main__":
     parser = ArgumentParser(description=DESCRIPTION)
@@ -321,9 +321,10 @@ if __name__ == "__main__":
     parser.add_argument("command", metavar="COMMAND", type=str, help="name of external command lexical list")
     parser.add_argument("-l", "--library", metavar="LIBRARY", type=str, default=DEFAULT_LIBRARY, help="name of external command library lexical list (default={})".format(DEFAULT_LIBRARY))
     parser.add_argument("-c", "--config", metavar="CONFIG", type=str, default=None, help="name of external command config lexical list (default=None)")
-    parser.add_argument("-t", "--type", metavar="TYPE", type=str, default=None, help="message part type (default=None)")
+    parser.add_argument("-i", "--id", metavar="ID", type=str, default=None, help="item ID (default=None)")
     parser.add_argument("-a", "--additional", metavar="ADDITIONAL", action="append", type=str, help="additional arguments in 'key=value' format (default=None)")
     parser.add_argument("-o", "--optional", metavar="OPTIONAL", action="append", type=str, help="optional arguments in 'key=value' format (default=None)")
+    parser.add_argument("-d", "--disable-folding", action="store_true", help="disable MIME header folding according to RFC 2231")
 
     args = parser.parse_args()
 

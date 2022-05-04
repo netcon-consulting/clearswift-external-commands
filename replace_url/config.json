@@ -6,7 +6,7 @@
         "media_types": {
             "SMTP": [ "not_protected" ]
         },
-        "parameters": "-t \"%ITEMTYPE%\" -c \"Config - Replace URL\" %FILENAME% %LOGNAME% \"External command - replace_url\"",
+        "parameters": "-i \"%ITEMID%\" -c \"Config - Replace URL\" %FILENAME% %LOGNAME% \"External command - replace_url\"",
         "responses": {
             "NONE": "Not modified",
             "DETECTED": "Error (%LOGTEXT%)",
