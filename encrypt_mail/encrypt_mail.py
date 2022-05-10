@@ -18,7 +18,7 @@ MESSAGE_SENDER="The email has been encrypted with the password {} and sent.\n\nP
 
 PORT_SMTP=10026
 
-def run_command(input, log, config, additional, optional, disable_folding):
+def run_command(input, log, config, additional, optional, disable_splitting):
     """
     Zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender.
 
@@ -27,10 +27,10 @@ def run_command(input, log, config, additional, optional, disable_folding):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
-    :type disable_folding: bool
+    :type disable_splitting: bool
     """
     try:
-        email = read_email(input, disable_folding)
+        email = read_email(input, disable_splitting)
     except Exception as ex:
         write_log(log, ex)
 

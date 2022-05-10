@@ -11,7 +11,7 @@ CONFIG_PARAMETERS = ( )
 
 HEADER_DKIM = "x-dkim-check"
 
-def run_command(input, log, config, additional, optional, disable_folding):
+def run_command(input, log, config, additional, optional, disable_splitting):
     """
     Add header with result of SpamLogic DKIM check.
 
@@ -20,10 +20,10 @@ def run_command(input, log, config, additional, optional, disable_folding):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
-    :type disable_folding: bool
+    :type disable_splitting: bool
     """
     try:
-        email = read_email(input, disable_folding)
+        email = read_email(input, disable_splitting)
     except Exception as ex:
         write_log(log, ex)
 

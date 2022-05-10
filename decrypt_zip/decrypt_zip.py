@@ -12,7 +12,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "password_list", "scan_sophos", "scan_kaspersky", "scan_avira", "remove_encryption" )
 
-def run_command(input, log, config, additional, optional, disable_folding):
+def run_command(input, log, config, additional, optional, disable_splitting):
     """
     Attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption.
 
@@ -21,7 +21,7 @@ def run_command(input, log, config, additional, optional, disable_folding):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
-    :type disable_folding: bool
+    :type disable_splitting: bool
     """
     try:
         set_password = set(lexical_list(config.password_list))

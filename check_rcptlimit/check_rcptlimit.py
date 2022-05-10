@@ -7,7 +7,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "recipient_limit", )
 
-def run_command(input, log, config, additional, optional, disable_folding):
+def run_command(input, log, config, additional, optional, disable_splitting):
     """
     Check number of recipients (in To and Cc headers) against limit.
 
@@ -16,10 +16,10 @@ def run_command(input, log, config, additional, optional, disable_folding):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
-    :type disable_folding: bool
+    :type disable_splitting: bool
     """
     try:
-        email = read_email(input, disable_folding)
+        email = read_email(input, disable_splitting)
     except Exception as ex:
         write_log(log, ex)
 

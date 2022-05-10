@@ -12,7 +12,7 @@ CONFIG_PARAMETERS = ( "address_tag", "clean_text", "clean_html", "subject_tag", 
 
 RECURSION_LIMIT = 5000
 
-def run_command(input, log, config, additional, optional, disable_folding):
+def run_command(input, log, config, additional, optional, disable_splitting):
     """
     Remove tags in address and subject headers, text and html bodies and calendar objects.
 
@@ -21,13 +21,13 @@ def run_command(input, log, config, additional, optional, disable_folding):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
-    :type disable_folding: bool
+    :type disable_splitting: bool
     """
     if not (config.address_tag or config.subject_tag or config.text_tag or config.html_id or config.calendar_tag):
         return ReturnCode.NONE
 
     try:
-        email = read_email(input, disable_folding)
+        email = read_email(input, disable_splitting)
     except Exception as ex:
         write_log(log, ex)
 

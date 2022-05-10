@@ -10,7 +10,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "keyword_list", "url_replacement" )
 
-def run_command(input, log, config, additional, optional, disable_folding):
+def run_command(input, log, config, additional, optional, disable_splitting):
     """
     Replace URLs in text and html body if one of the keywords is found.
 
@@ -19,10 +19,10 @@ def run_command(input, log, config, additional, optional, disable_folding):
     :type config: TupleConfig
     :type additional: TupleAdditional
     :type optional: dict
-    :type disable_folding: bool
+    :type disable_splitting: bool
     """
     try:
-        email = read_email(input, disable_folding)
+        email = read_email(input, disable_splitting)
     except Exception as ex:
         write_log(log, ex)
 

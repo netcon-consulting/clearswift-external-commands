@@ -1,4 +1,4 @@
-# command_library.py V7.0.0
+# command_library.py V7.0.1
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -9,15 +9,17 @@ Collection of functions for Clearswift external commands.
 
 import enum
 from collections import namedtuple
-from email import message_from_binary_file, policy, errors
+from email import message_from_binary_file, errors
+from email.policy import EmailPolicy
 from email.headerregistry import HeaderRegistry, BaseHeader
-from email._header_value_parser import TokenList, Terminal, _steal_trailing_WSP_if_exists, _fold_as_ew, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, SPECIALS
+from email._header_value_parser import TokenList, Terminal, _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, SPECIALS
+from email.utils import _has_surrogates
 from xml.sax import make_parser, handler
 from io import BytesIO
 import re
 from subprocess import run, PIPE, DEVNULL
 from socket import socket, AF_INET, SOCK_STREAM
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 import pyzipper
 from bs4 import BeautifulSoup
 from dns.resolver import resolve
@@ -165,6 +167,9 @@ class HandlerAnnotation(handler.ContentHandler):
         """
         return self.list_annotation
 
+class EmailPolicyCustom(EmailPolicy):
+    disable_splitting = False
+
 class Header(TokenList):
     token_type = "header"
 
@@ -212,6 +217,11 @@ class Header(TokenList):
 
                 want_encoding = True
 
+            if part.token_type == "mime-parameters":
+                fold_mime_parameters(part, lines, maxlen, encoding, policy.disable_splitting)
+
+                continue
+
             if want_encoding and not wrap_as_ew_blocked:
                 if not part.as_ew_allowed:
                     want_encoding = False
@@ -237,6 +247,7 @@ class Header(TokenList):
                     last_ew = _fold_as_ew(tstr, lines, maxlen, last_ew, part.ew_combine_allowed, charset)
 
                 want_encoding = False
+
                 continue
 
             if len(tstr) <= maxlen - len(lines[-1]):
@@ -292,6 +303,78 @@ class BaseHeaderCustom(BaseHeader):
         header.append(self._parse_tree)
 
         return header.fold(policy=policy)
+
+def fold_mime_parameters(part, lines, maxlen, encoding, disable_splitting):
+    for name, value in part.params:
+        if not lines[-1].rstrip().endswith(";"):
+            lines[-1] += ";"
+
+        charset = encoding
+
+        error_handler = "strict"
+
+        try:
+            value.encode(encoding)
+
+            encoding_required = False
+        except UnicodeEncodeError:
+            encoding_required = True
+
+            if _has_surrogates(value):
+                charset = "unknown-8bit"
+
+                error_handler = "surrogateescape"
+            else:
+                charset = "utf-8"
+
+        if encoding_required:
+            encoded_value = quote(value, safe="", errors=error_handler)
+
+            tstr = "{}*={}''{}".format(name, charset, encoded_value)
+        else:
+            tstr = "{}={}".format(name, quote_string(value))
+
+        if len(lines[-1]) + len(tstr) + 1 < maxlen:
+            lines[-1] = lines[-1] + ' ' + tstr
+
+            continue
+        elif disable_splitting or len(tstr) + 2 <= maxlen:
+            lines.append(" " + tstr)
+
+            continue
+
+        section = 0
+
+        extra_chrome = charset + "''"
+
+        while value:
+            chrome_len = len(name) + len(str(section)) + 3 + len(extra_chrome)
+
+            if maxlen <= chrome_len + 3:
+                maxlen = 78
+
+            splitpoint = maxchars = maxlen - chrome_len - 2
+
+            while True:
+                partial = value[:splitpoint]
+
+                encoded_value = quote(partial, safe="", errors=error_handler)
+
+                if len(encoded_value) <= maxchars:
+                    break
+
+                splitpoint -= 1
+
+            lines.append(" {}*{}*={}{}".format(name, section, extra_chrome, encoded_value))
+
+            extra_chrome = ""
+
+            section += 1
+
+            value = value[splitpoint:]
+
+            if value:
+                lines[-1] += ";"
 
 def get_list(list_type, regex_list, regex_item, last_config=LAST_CONFIG):
     """
@@ -449,19 +532,15 @@ def get_text_content(part, errors="replace"):
 
     return content.decode(charset, errors=errors)
 
-def read_email(path_email, disable_folding):
+def read_email(path_email, disable_splitting):
     """
     Parse email file.
 
     :type path_email: str
-    :type disable_folding: bool
+    :type disable_splitting: bool
     :rtype: email.message.Message
     """
-    if disable_folding:
-        email_policy = policy.default.clone(header_factory=HeaderRegistry(base_class=BaseHeaderCustom))
-    else:
-        email_policy = policy.default
-
+    email_policy = EmailPolicyCustom().clone(header_factory=HeaderRegistry(base_class=BaseHeaderCustom), disable_splitting=disable_splitting)
     email_policy.content_manager.add_get_handler("text", get_text_content)
 
     try:
