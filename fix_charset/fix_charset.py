@@ -1,4 +1,4 @@
-# fix_charset.py V6.0.0
+# fix_charset.py V7.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -9,7 +9,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( )
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Set charset in meta tag in html body to charset defined in content-type header.
 
@@ -19,6 +19,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         email = read_email(input, disable_splitting)
@@ -48,13 +49,10 @@ def run_command(input, log, config, additional, optional, disable_splitting):
                         part.set_payload(content, charset=charset_mime)
 
                         try:
-                            with open(input, "wb") as f:
-                                f.write(email.as_bytes())
-                        except Exception:
-                            write_log(log, "Error writing '{}'".format(input))
+                            write_email(email, input, reformat_header)
+                        except Exception as ex:
+                            write_log(log, ex)
 
                             return ReturnCode.DETECTED
-
-                        return ReturnCode.MODIFIED
 
     return ReturnCode.NONE

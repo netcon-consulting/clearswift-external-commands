@@ -1,4 +1,4 @@
-# check_qr.py V5.0.0
+# check_qr.py V6.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -11,7 +11,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "url_blacklist", "url_whitelist" )
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists.
 
@@ -21,6 +21,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         image = Image.open(input)

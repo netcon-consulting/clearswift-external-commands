@@ -1,4 +1,4 @@
-# encrypt_mail.py V5.0.0
+# encrypt_mail.py V6.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -18,7 +18,7 @@ MESSAGE_SENDER="The email has been encrypted with the password {} and sent.\n\nP
 
 PORT_SMTP=10026
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender.
 
@@ -28,6 +28,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         email = read_email(input, disable_splitting)

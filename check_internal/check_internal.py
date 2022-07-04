@@ -1,4 +1,4 @@
-# check_internal.py V6.0.0
+# check_internal.py V7.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,7 +10,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "internal_list", "internal_networks" )
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Check whether sender IP is in internal networks and sender domain is internal domain.
 
@@ -20,6 +20,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         email = read_email(input, disable_splitting)

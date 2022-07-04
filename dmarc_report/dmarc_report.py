@@ -13,7 +13,7 @@ CONFIG_PARAMETERS = ( )
 
 TEMPLATE_SYSLOG = Template("org=$name_org, id=$id_report, begin=$date_begin, end=$date_end, domain=$domain, ip=$ip_source, count=$count, disposition=$disposition, dkim=$dkim, spf=$spf")
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Parse DMARC xml reports and write results to syslog.
 
@@ -23,6 +23,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         xml_report = read_file(input, ignore_errors=True)

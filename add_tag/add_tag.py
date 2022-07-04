@@ -1,4 +1,4 @@
-# add_tag.py V5.0.0
+# add_tag.py V6.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,7 +12,7 @@ CONFIG_PARAMETERS = ( "address_tag", "internal_list", "subject_tag", "text_tag",
 
 RECURSION_LIMIT = 5000
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Add tags in address and subject headers, text and html bodies and calendar objects.
 
@@ -22,6 +22,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     if not (config.address_tag or config.subject_tag or config.text_tag or config.html_tag or config.calendar_tag):
         return ReturnCode.NONE
@@ -265,10 +266,9 @@ def run_command(input, log, config, additional, optional, disable_splitting):
 
     if email_modified:
         try:
-            with open(input, "wb") as f:
-                f.write(email.as_bytes())
-        except Exception:
-            write_log(log, "Error writing '{}'".format(input))
+            write_email(email, input, reformat_header)
+        except Exception as ex:
+            write_log(log, ex)
 
             return ReturnCode.DETECTED
 

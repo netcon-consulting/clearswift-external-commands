@@ -1,4 +1,4 @@
-# rewrite_url.py V6.0.0
+# rewrite_url.py V7.0.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -257,7 +257,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
     return None
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Rewrite URLs in text and html body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
 
@@ -267,6 +267,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     if not (config.redirect_list or config.substitution_list):
         return ReturnCode.NONE
@@ -481,10 +482,9 @@ def run_command(input, log, config, additional, optional, disable_splitting):
 
     if email_modified:
         try:
-            with open(input, "wb") as f:
-                f.write(email.as_bytes())
-        except Exception:
-            write_log(log, "Error writing '{}'".format(input))
+            write_email(email, input, reformat_header)
+        except Exception as ex:
+            write_log(log, ex)
 
             return ReturnCode.DETECTED
 

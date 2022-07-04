@@ -1,4 +1,4 @@
-# command_library.py V7.0.1
+# command_library.py V8.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -550,6 +550,37 @@ def read_email(path_email, disable_splitting):
         raise Exception("Cannot parse email")
 
     return email
+
+def write_email(email, path_email, reformat_header):
+    """
+    Write email to file.
+
+    :type email: email.message.Message
+    :type path_email: str
+    :type reformat_header: bool
+    """
+    if reformat_header:
+        list_header = list()
+
+        for (key, value) in email.items():
+            list_header.append((key, str(value)))
+
+        for key in set(email.keys()):
+            del email[key]
+
+        for (key, value) in list_header:
+            email[key] = value
+
+    try:
+        email = email.as_bytes()
+    except Exception:
+        raise Exception("Cannot convert email to bytes")
+
+    try:
+        with open(path_email, "wb") as f:
+            f.write(email)
+    except Exception:
+        raise Exception("Cannot write email to '{}'".format(input))
 
 def zip_encrypt(set_data, password):
     """

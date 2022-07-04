@@ -1,4 +1,4 @@
-# dkim_header.py V5.0.0
+# dkim_header.py V6.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -11,7 +11,7 @@ CONFIG_PARAMETERS = ( )
 
 HEADER_DKIM = "x-dkim-check"
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Add header with result of SpamLogic DKIM check.
 
@@ -21,6 +21,7 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         email = read_email(input, disable_splitting)
@@ -41,10 +42,9 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     email[HEADER_DKIM] = match.group(1)
 
     try:
-        with open(input, "wb") as f:
-            f.write(email.as_bytes())
-    except Exception:
-        write_log(log, "Error writing '{}'".format(input))
+        write_email(email, input, reformat_header)
+    except Exception as ex:
+        write_log(log, ex)
 
         return ReturnCode.DETECTED
 

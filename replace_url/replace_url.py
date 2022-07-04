@@ -1,4 +1,4 @@
-# replace_url.py V6.0.0
+# replace_url.py V7.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -10,7 +10,7 @@ ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "keyword_list", "url_replacement" )
 
-def run_command(input, log, config, additional, optional, disable_splitting):
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
     Replace URLs in text and html body if one of the keywords is found.
 
@@ -20,25 +20,26 @@ def run_command(input, log, config, additional, optional, disable_splitting):
     :type additional: TupleAdditional
     :type optional: dict
     :type disable_splitting: bool
+    :type reformat_header: bool
     """
     try:
         email = read_email(input, disable_splitting)
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     try:
         set_keyword = set(lexical_list(config.keyword_list))
     except Exception as ex:
         write_log(log, ex)
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     if not set_keyword:
         write_log(log, "keyword list is empty")
 
-        return ReturnCode.ERROR
+        return ReturnCode.DETECTED
 
     part_text = None
     part_html = None
@@ -99,12 +100,11 @@ def run_command(input, log, config, additional, optional, disable_splitting):
             part_html.set_payload(content_html)
 
         try:
-            with open(input, "wb") as f:
-                f.write(email.as_bytes())
-        except Exception:
-            write_log(log, "Error writing '{}'".format(input))
+            write_email(email, input, reformat_header)
+        except Exception as ex:
+            write_log(log, ex)
 
-            return ReturnCode.ERROR
+            return ReturnCode.DETECTED
 
         return ReturnCode.MODIFIED
 

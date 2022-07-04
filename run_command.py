@@ -1,4 +1,4 @@
-# run_command.py V4.0.0
+# run_command.py V5.0.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -312,7 +312,7 @@ def main(args):
     else:
         optional = None
 
-    return run_command(args.input, args.log, config, additional, optional, args.disable_splitting)
+    return run_command(args.input, args.log, config, additional, optional, args.disable_splitting, args.reformat_header)
 
 if __name__ == "__main__":
     parser = ArgumentParser(description=DESCRIPTION)
@@ -325,6 +325,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--additional", metavar="ADDITIONAL", action="append", type=str, help="additional arguments in 'key=value' format (default=None)")
     parser.add_argument("-o", "--optional", metavar="OPTIONAL", action="append", type=str, help="optional arguments in 'key=value' format (default=None)")
     parser.add_argument("-d", "--disable-splitting", action="store_true", help="disable MIME header parameter splitting according to RFC 2231")
+    parser.add_argument("-r", "--reformat-header", action="store_true", help="reformat mail header")
 
     args = parser.parse_args()
 
