@@ -1,4 +1,4 @@
-# command_library.py V8.0.0
+# command_library.py V8.1.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -45,6 +45,7 @@ LIST_REPUTATION = [
 CHARSET_EQUIVALENT = {
     "windows-31j": "cp932",
     "windows-874": "cp874",
+    "big-5": "big5",
 }
 
 LIST_ADDRESS = "address"
@@ -563,13 +564,18 @@ def write_email(email, path_email, reformat_header):
         list_header = list()
 
         for (key, value) in email.items():
-            list_header.append((key, str(value)))
+            list_header.append((key, str(value).replace("\n", " ").replace("\r", " ")))
 
         for key in set(email.keys()):
             del email[key]
 
         for (key, value) in list_header:
-            email[key] = value
+            try:
+                email[key] = value
+            except ValueError:
+                pass
+            except Exception as ex:
+                raise Exception("Cannot add '{}' header: {}".format(key, str(ex)))
 
     try:
         email = email.as_bytes()
