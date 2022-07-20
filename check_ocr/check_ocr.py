@@ -1,4 +1,4 @@
-# check_ocr.py V2.0.0
+# check_ocr.py V2.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -29,6 +29,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         write_log(log, "Cannot read image '{}'".format(input))
 
         return ReturnCode.ERROR
+
+    if image.width < config.size_min or image.width > config.size_max or image.height < config.size_min or image.height > config.size_max:
+        return ReturnCode.NONE
 
     try:
         set_blacklist = set(lexical_list(config.regex_blacklist))
