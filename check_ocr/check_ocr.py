@@ -1,4 +1,4 @@
-# check_ocr.py V1.0.0
+# check_ocr.py V2.0.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -9,7 +9,7 @@ from pytesseract import image_to_string
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
-CONFIG_PARAMETERS = ( "regex_blacklist", "regex_whitelist" )
+CONFIG_PARAMETERS = ( "regex_blacklist", "regex_whitelist", "size_min", "size_max" )
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
@@ -31,7 +31,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.ERROR
 
     try:
-        set_blacklist = set(expression_list(config.regex_whitelist))
+        set_blacklist = set(lexical_list(config.regex_blacklist))
     except Exception as ex:
         write_log(log, ex)
 
@@ -41,7 +41,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     if config.regex_whitelist:
         try:
-            set_whitelist = set(expression_list(config.regex_whitelist))
+            set_whitelist = set(lexical_list(config.regex_whitelist))
         except Exception as ex:
             write_log(log, ex)
 
