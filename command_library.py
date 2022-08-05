@@ -1,4 +1,4 @@
-# command_library.py V9.0.0
+# command_library.py V9.1.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -46,6 +46,7 @@ CHARSET_EQUIVALENT = {
     "windows-31j": "cp932",
     "windows-874": "cp874",
     "big-5": "big5",
+    "8859_1": "iso-8859-1",
 }
 
 LIST_ADDRESS = "address"
