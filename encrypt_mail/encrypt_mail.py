@@ -1,4 +1,4 @@
-# encrypt_mail.py V6.0.0
+# encrypt_mail.py V6.1.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,6 +7,7 @@ import re
 import random
 import string
 from email.message import EmailMessage
+from email.utils import parseaddr, getaddresses
 import smtplib
 
 ADDITIONAL_ARGUMENTS = ( )
@@ -40,7 +41,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     if "Subject" not in email:
         return ReturnCode.NONE
 
-    header_subject = str(email.get("Subject"))
+    header_subject = str(email["Subject"])
 
     keyword_escaped = re.escape(config.keyword_encryption)
 
@@ -52,14 +53,14 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    header_from = str(email.get("From"))
+    header_from = str(email["From"])
 
     if not header_from:
         write_log(log, "Header from is empty")
 
         return ReturnCode.ERROR
 
-    address_sender = extract_email_address(header_from)
+    address_sender = parseaddr(header_from)[1]
 
     if not address_sender:
         write_log(log, "Cannot find sender address")
@@ -70,16 +71,10 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     # collect email addresses in To and Cc headers
     for header_keyword in [ "To", "Cc" ]:
-        address_recipient[header_keyword] = set()
-
         if header_keyword in email:
-            for header in email.get_all(header_keyword):
-                email_addresses = extract_email_addresses(str(header))
+            address_recipient[header_keyword] = { address for (_, address) in getaddresses(email.get_all(header_keyword)) }
 
-                if email_addresses:
-                    address_recipient[header_keyword] |= email_addresses
-
-    if not address_recipient["To"]:
+    if "To" not in address_recipient:
         write_log(log, "Cannot find recipient address")
 
         return ReturnCode.ERROR
@@ -105,7 +100,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     email_message["Subject"] = header_subject
     email_message["From"] = address_sender
     email_message["To"] = ", ".join(address_recipient["To"])
-    if address_recipient["Cc"]:
+    if "Cc" in address_recipient:
         email_message["Cc"] = ", ".join(address_recipient["Cc"])
     email_message.set_content(MESSAGE_RECIPIENT.format(address_sender))
     email_message.add_attachment(zip_archive, maintype="application", subtype="zip", filename="email.zip")

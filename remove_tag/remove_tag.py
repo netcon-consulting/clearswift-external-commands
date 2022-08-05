@@ -1,9 +1,10 @@
-# remove_tag.py V6.0.0
+# remove_tag.py V6.1.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
+from email.utils import getaddresses
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
@@ -41,46 +42,26 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     if config.address_tag:
         # remove address tag
 
-        string_tag = "{} ".format(config.address_tag)
+        address_tag = "{} ".format(config.address_tag)
 
-        pattern_tag = re.compile(r'^"?{} '.format(re.escape(config.address_tag)))
+        length_tag = len(address_tag)
 
         for header_keyword in [ "To", "Cc" ]:
             if header_keyword in email:
-                list_address = extract_addresses(", ".join(email.get_all(header_keyword)))
+                list_address = getaddresses(email.get_all(header_keyword))
 
                 if list_address:
                     header = ""
                     header_modified = False
 
-                    for (prefix, address, suffix) in list_address:
-                        if prefix.startswith(";") or prefix.startswith(","):
-                            prefix = prefix[1:]
+                    for (prefix, address) in list_address:
+                        if address:
+                            if prefix.startswith(address_tag):
+                                prefix = prefix[length_tag:]
 
-                        if prefix.endswith("<") and suffix.startswith(">"):
-                            prefix = prefix[:-1]
-                            suffix = suffix[1:]
+                                header_modified = True
 
-                        prefix = prefix.strip()
-                        suffix = suffix.strip()
-
-                        if re.search(pattern_tag, prefix):
-                            if prefix.startswith('"'):
-                                prefix = '"' + prefix[len(config.address_tag) + 2:]
-                            else:
-                                prefix = prefix[len(config.address_tag) + 1:]
-
-                            header_modified = True
-
-                        if prefix:
-                            header += prefix + " "
-
-                        header += "<" + address + ">"
-
-                        if suffix:
-                            header += " " + suffix
-
-                        header += ", "
+                            header += '"{}" <{}>, '.format(prefix, address)
 
                     if header_modified:
                         del email[header_keyword]
@@ -131,8 +112,8 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                     body_modified = True
 
-            if config.address_tag and config.clean_text and string_tag in content:
-                content = content.replace(string_tag, "")
+            if config.address_tag and config.clean_text and address_tag in content:
+                content = content.replace(address_tag, "")
 
                 body_modified = True
 
@@ -176,8 +157,8 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                 body_modified = True
 
-            if config.address_tag and config.clean_html and string_tag in content:
-                content = content.replace(string_tag, "")
+            if config.address_tag and config.clean_html and address_tag in content:
+                content = content.replace(address_tag, "")
 
                 body_modified = True
 

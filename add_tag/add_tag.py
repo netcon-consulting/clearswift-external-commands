@@ -1,9 +1,10 @@
-# add_tag.py V6.0.0
+# add_tag.py V6.1.0
 #
 # Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
+from email.utils import parseaddr, getaddresses
 import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
@@ -41,39 +42,20 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     if config.address_tag and "From" in email:
         # add address tag
 
-        pattern_tag = re.compile(r'^"?{} '.format(re.escape(config.address_tag)))
+        address_tag = "{} ".format(config.address_tag)
 
-        list_address = extract_addresses(email.get("From"))
+        (prefix, address) = parseaddr(email["From"])
 
-        if list_address:
-            (prefix, address, suffix) = list_address[0]
+        if address and not prefix.startswith(address_tag):
+            if prefix:
+                header = '"{} {}" <{}>'.format(config.address_tag, prefix, address)
+            else:
+                header = '"{} {}" <{}>'.format(config.address_tag, address, address)
 
-            if prefix.endswith("<") and suffix.startswith(">"):
-                prefix = prefix[:-1]
-                suffix = suffix[1:]
+            del email["From"]
+            email["From"] = header
 
-            prefix = prefix.strip()
-            suffix = suffix.strip()
-
-            if not re.search(pattern_tag, prefix):
-                prefix_new = ""
-
-                for (index, char) in enumerate(prefix):
-                    if char == '"':
-                        if end_escape(prefix[:index]):
-                            prefix_new += char
-                    else:
-                        prefix_new += char
-
-                if prefix_new:
-                    prefix = '"{} {}"'.format(config.address_tag, prefix_new)
-                else:
-                    prefix = '"{} {}"'.format(config.address_tag, address)
-
-                del email["From"]
-                email["From"] = prefix + " <" + address + "> " + suffix
-
-                email_modified = True
+            email_modified = True
 
         if config.internal_list:
             # add address tag to external addresses in To/Cc header
@@ -91,51 +73,25 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    list_address = extract_addresses(", ".join(email.get_all(header_keyword)))
+                    list_address = getaddresses(email.get_all(header_keyword))
 
                     if list_address:
                         header = ""
                         header_modified = False
 
-                        for (prefix, address, suffix) in list_address:
-                            if prefix.startswith(";") or prefix.startswith(","):
-                                prefix = prefix[1:]
+                        for (prefix, address) in list_address:
+                            if address:
+                                match = re.search(pattern_domain, address)
 
-                            if prefix.endswith("<") and suffix.startswith(">"):
-                                prefix = prefix[:-1]
-                                suffix = suffix[1:]
-
-                            prefix = prefix.strip()
-                            suffix = suffix.strip()
-
-                            match = re.search(pattern_domain, address)
-
-                            if match and match.group(1).lower() not in set_domain and not re.search(pattern_tag, prefix):
-                                prefix_new = ""
-
-                                for (index, char) in enumerate(prefix):
-                                    if char == '"':
-                                        if end_escape(prefix[:index]):
-                                            prefix_new += char
+                                if match is not None and match.group(1).lower() not in set_domain and not prefix.startswith(address_tag):
+                                    if prefix:
+                                        prefix = "{} {}".format(config.address_tag, prefix)
                                     else:
-                                        prefix_new += char
+                                        prefix = "{} {}".format(config.address_tag, address)
 
-                                if prefix_new:
-                                    prefix = '"{} {}"'.format(config.address_tag, prefix_new)
-                                else:
-                                    prefix = '"{} {}"'.format(config.address_tag, address)
+                                    header_modified = True
 
-                                header_modified = True
-
-                            if prefix:
-                                header += prefix + " "
-
-                            header += "<" + address + ">"
-
-                            if suffix:
-                                header += " " + suffix
-
-                            header += ", "
+                                header += '"{}" <{}>, '.format(prefix, address)
 
                         if header_modified:
                             del email[header_keyword]
@@ -146,13 +102,11 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     if config.subject_tag and "Subject" in email:
         # add subject tag
 
-        header = email.get("Subject").strip()
+        header = email["Subject"].strip()
 
-        if not re.search(r"^{} ".format(re.escape(config.subject_tag)), header):
-            header = "{} {}".format(config.subject_tag, header)
-
+        if not header.startswith("{} ".format(config.subject_tag)):
             del email["Subject"]
-            email["Subject"] = header
+            email["Subject"] = "{} {}".format(config.subject_tag, header)
 
             email_modified = True
 
@@ -253,7 +207,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                     else:
                         name = re.search(r"[^:;]*", organizer[name_start:]).group(0)
 
-                    if not re.search(r"^{} ".format(re.escape(config.calendar_tag)), name):
+                    if re.search(r"^{} ".format(re.escape(config.calendar_tag)), name) is None:
                         if HEADER_CTE in part:
                             del part[HEADER_CTE]
 

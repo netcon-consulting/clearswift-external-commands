@@ -1,7 +1,9 @@
-# check_rcptlimit.py V6.0.0
+# check_rcptlimit.py V6.1.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
+
+from email.utils import getaddresses
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -26,18 +28,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    num_recipients = 0
-
-    # count number of email addresses in To and Cc headers
-    for header_keyword in [ "To", "Cc" ]:
-        if header_keyword in email:
-            for header in email.get_all(header_keyword):
-                email_addresses = extract_email_addresses(str(header))
-
-                if email_addresses:
-                    num_recipients += len(email_addresses)
-
-    if num_recipients > config.recipient_limit:
+    if len(getaddresses(email.get_all("To") + email.get_all("Cc"))) > config.recipient_limit:
         return ReturnCode.DETECTED
 
     return ReturnCode.NONE

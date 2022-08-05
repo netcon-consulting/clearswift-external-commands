@@ -1,4 +1,4 @@
-# command_library.py V8.1.0
+# command_library.py V9.0.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -640,103 +640,6 @@ def end_escape(string):
             break
 
     return num_blackslash % 2 != 0
-
-def extract_addresses(string, discard_unparsable=True):
-    """
-    Extract email addresses with prefix and suffix from string.
-
-    :type string: str
-    :type discard_unparsable: bool
-    :rtype: list
-    """
-    PATTERN_WITH_BRACKETS = re.compile(r'(.*?<)([^<",;\s]+@[^>",;\s]+)(>.*)')
-    PATTERN_NO_BRACKETS = re.compile(r'(.*?)([^<",;\s]+@[^>",;\s]+)(.*)')
-    PATTERN_QUOTE = re.compile(r'"')
-
-    list_chunk = [ 0, ]
-
-    for match in re.finditer(r"(;|,)", string):
-        index = match.start(0)
-
-        if not end_escape(string[:index]):
-            list_chunk.append(index)
-
-    index = len(list_chunk) - 1
-    rest = string
-
-    list_address = list()
-
-    while index >= 0:
-        chunk = rest[list_chunk[index]:]
-        rest = rest[:list_chunk[index]]
-
-        match = re.search(PATTERN_WITH_BRACKETS, chunk)
-
-        if not match:
-            match = re.search(PATTERN_NO_BRACKETS, chunk)
-
-        if match:
-            prefix = match.group(1)
-            email = match.group(2)
-            suffix = match.group(3)
-
-            while True:
-                num_quote = 0
-
-                for match in re.finditer(PATTERN_QUOTE, prefix):
-                    if not end_escape(prefix[:match.start(0)]):
-                        num_quote = num_quote + 1
-
-                if num_quote % 2 == 0:
-                    break
-
-                index = index - 1
-
-                if index < 0:
-                    break
-
-                prefix = rest[list_chunk[index]:] + prefix
-                rest = rest[:list_chunk[index]]
-
-            list_address.append(( prefix, email, suffix ))
-        elif not discard_unparsable:
-            list_address.append(( chunk, "", "" ))
-
-        index = index - 1
-
-    list_address.reverse()
-
-    return list_address
-
-def extract_email_addresses(string):
-    """
-    Extract multiple email addresses from string and return as set.
-
-    :type string: str
-    :rtype: set
-    """
-    list_address = extract_addresses(string)
-
-    if list_address:
-        return { email for (_, email, _) in list_address }
-    else:
-        return None
-
-def extract_email_address(string):
-    """
-    Extract single email address from string.
-
-    :type string: str
-    :rtype: str
-    """
-    list_address = extract_addresses(string)
-
-    if list_address:
-        (_, email, _) = list_address[0]
-
-        return email
-    else:
-        return None
 
 def html2text(html, strip=True):
     """

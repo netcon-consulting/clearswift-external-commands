@@ -1,9 +1,10 @@
-# check_internal.py V7.0.0
+# check_internal.py V7.1.0
 #
 # Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
+from email.utils import parseaddr
 from ipaddress import IPv4Address, IPv4Network
 
 ADDITIONAL_ARGUMENTS = ( )
@@ -75,14 +76,14 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    header_from = str(email.get("From"))
+    header_from = str(email["From"])
 
     if not header_from:
         write_log(log, "Header from is empty")
 
         return ReturnCode.ERROR
 
-    sender_address = extract_email_address(header_from)
+    sender_address = parseaddr(header_from)[1]
 
     if not sender_address:
         write_log(log, "Cannot find sender address")
