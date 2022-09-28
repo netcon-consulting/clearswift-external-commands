@@ -1,4 +1,4 @@
-# check_ocr.py V2.0.1
+# check_ocr.py V3.0.0
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -9,7 +9,7 @@ from pytesseract import image_to_string
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
-CONFIG_PARAMETERS = ( "regex_blacklist", "regex_whitelist", "size_min", "size_max" )
+CONFIG_PARAMETERS = ( "regex_blacklist", "regex_whitelist", "size_min", "size_max", "skip_unsupported" )
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
@@ -52,18 +52,24 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         set_whitelist = { re.compile(regex, re.IGNORECASE) for regex in set_whitelist }
 
-    text = image_to_string(image, lang="eng+deu")
+    try:
+        text = image_to_string(image, lang="eng+deu")
+    except TypeError as ex:
+        if not config.skip_unsupported:
+            write_log(log, ex)
 
-    if text:
-        if config.regex_whitelist:
-            for pattern in set_whitelist:
+            return ReturnCode.ERROR
+    else:
+        if text:
+            if config.regex_whitelist:
+                for pattern in set_whitelist:
+                    if re.search(pattern, text) is not None:
+                        return ReturnCode.NONE
+
+            for pattern in set_blacklist:
                 if re.search(pattern, text) is not None:
-                    return ReturnCode.NONE
+                    write_log(log, pattern.pattern)
 
-        for pattern in set_blacklist:
-            if re.search(pattern, text) is not None:
-                write_log(log, pattern.pattern)
-
-                return ReturnCode.DETECTED
+                    return ReturnCode.DETECTED
 
     return ReturnCode.NONE

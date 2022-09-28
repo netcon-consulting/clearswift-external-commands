@@ -1,4 +1,4 @@
-check_ocr.py V2.0.1
+check_ocr.py V3.0.0
 ===================
 
 Check text in pictures against regular expression blacklist.
@@ -8,6 +8,7 @@ Check text in pictures against regular expression blacklist.
 * regex_whitelist (string): name of lexical list with whitelisted regex (empty for no whitelist)
 * size_min (integer): minimum image size in pixel
 * size_max (integer): maximum image size in pixel
+* skip_unsupported (boolean): skip unsupported image format/type
 
 ## Lexical lists
 * Regex blacklist: Regex blacklist

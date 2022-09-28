@@ -1,4 +1,4 @@
-# rewrite_url.py V7.0.0
+# rewrite_url.py V7.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -193,8 +193,10 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
                 for a in soup.find_all("a", href=url):
                     a["href"] = url_modified
 
-                    if a.text == url or a.text == url_strip:
-                        a.string.replace_with(url_modified)
+                    if a.text == url:
+                        a.find(text=url).replace_with(url_modified)
+                    elif a.text == url_strip:
+                        a.find(text=url_strip).replace_with(url_modified)
 
                     if a.has_attr("title"):
                         title = a["title"]
@@ -228,22 +230,22 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
                     dict_url[url] = url_modified
 
     if dict_url:
-        for tag in soup.findAll(text=PATTERN_URL):
-            tag_text = tag.text
+        for string in soup.findAll(text=PATTERN_URL):
+            text = string.text
 
             index_shift = 0
 
-            for match in re.finditer(PATTERN_URL, tag_text):
+            for match in re.finditer(PATTERN_URL, text):
                 url = match.group()
 
                 if url in dict_url:
                     url_modified = dict_url[url]
 
-                    tag_text = tag_text[:match.start() + index_shift] + url_modified + tag_text[match.end() + index_shift:]
+                    text = text[:match.start() + index_shift] + url_modified + text[match.end() + index_shift:]
 
                     index_shift += len(url_modified) - len(url)
 
-            tag.string.replace_with(tag_text)
+            string.replace_with(text)
 
         try:
             content = soup.encode(charset).decode(charset)
