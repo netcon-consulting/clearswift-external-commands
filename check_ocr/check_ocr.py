@@ -1,9 +1,10 @@
-# check_ocr.py V3.0.0
+# check_ocr.py V3.0.1
 #
 # Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
+from io import BytesIO
 from PIL import Image
 from pytesseract import image_to_string
 
@@ -24,9 +25,20 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     :type reformat_header: bool
     """
     try:
-        image = Image.open(input)
+        with open(input, "rb") as f:
+            image = f.read()
     except Exception:
         write_log(log, "Cannot read image '{}'".format(input))
+
+        return ReturnCode.ERROR
+
+    try:
+        image = Image.open(BytesIO(image))
+    except Exception:
+        if config.skip_unsupported:
+            return ReturnCode.NONE
+
+        write_log(log, "Unsupported image format")
 
         return ReturnCode.ERROR
 
