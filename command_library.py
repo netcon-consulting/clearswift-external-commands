@@ -1,6 +1,6 @@
-# command_library.py V9.1.0
+# command_library.py V10.0.0
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 """
@@ -481,9 +481,9 @@ def annotation(name_annotation):
     else:
         raise Exception("Annotation '{}' does not exist".format(name_annotation))
 
-def read_file(path_file, ignore_errors=False):
+def read_text(path_file, ignore_errors=False):
     """
-    Read file as string.
+    Read text file.
 
     :type path_file: str
     :type ignore_errors: bool
@@ -502,6 +502,23 @@ def read_file(path_file, ignore_errors=False):
         raise Exception("Cannot open '{}'".format(path_file))
     except UnicodeDecodeError:
         raise Exception("'{}' not UTF-8".format(path_file))
+
+    return content
+
+def read_binary(path_file):
+    """
+    Read binary file.
+
+    :type path_file: str
+    :rtype: bytes
+    """
+    try:
+        with open(path_file, "rb") as f:
+            content = f.read()
+    except FileNotFoundError:
+        raise Exception("'{}' does not exist".format(path_file))
+    except PermissionError:
+        raise Exception("Cannot open '{}'".format(path_file))
 
     return content
 

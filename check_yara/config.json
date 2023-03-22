@@ -1,0 +1,25 @@
+{
+    "Check YARA": {
+        "modules": [
+            "yara-python"
+        ],
+        "list_lexical": [
+            "YARA rules"
+        ],
+        "media_types": {
+            "SMTP": [ "not_protected" ]
+        },
+        "parameters": "-i \"%ITEMID%\" -c \"Config - Check YARA\" %FILENAME% %LOGNAME% \"External command - check_yara\"",
+        "responses": {
+            "NONE": "No match",
+            "DETECTED": "YARA rule match (%LOGTEXT%)",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:YARA detected" }
+        },
+        "config": {
+            "yara_rules": { "type": "string", "description": "name of lexical list with YARA rules", "value": "\"YARA rules\"" }
+        }
+    }
+}

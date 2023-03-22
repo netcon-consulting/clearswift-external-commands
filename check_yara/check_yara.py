@@ -1,0 +1,52 @@
+# check_yara.py V1.0.0
+#
+# Copyright (c) 2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
+
+import yara
+
+ADDITIONAL_ARGUMENTS = ( )
+OPTIONAL_ARGUMENTS = False
+CONFIG_PARAMETERS = ( "yara_rules", )
+
+def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
+    """
+    Check raw email data (or attachments) against YARA rules.
+
+    :type input: str
+    :type log: str
+    :type config: TupleConfig
+    :type additional: TupleAdditional
+    :type optional: dict
+    :type disable_splitting: bool
+    :type reformat_header: bool
+    """
+    try:
+        data = read_binary(input)
+    except Exception as ex:
+        write_log(log, ex)
+
+        return ReturnCode.ERROR
+
+    try:
+        list_rules = lexical_list(config.yara_rules)
+    except Exception as ex:
+        write_log(log, ex)
+
+        return ReturnCode.ERROR
+
+    try:
+        rules = yara.compile(source="\n".join(sorted(set(list_rules))))
+    except Exception as ex:
+        write_log(log, "Invalid YARA rules")
+
+        return ReturnCode.ERROR
+
+    matches = rule.match(data=data)
+
+    if matches:
+        write_log(log, str(matches)[1:-1])
+
+        return ReturnCode.DETECTED
+
+    return ReturnCode.NONE

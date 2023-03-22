@@ -15,6 +15,7 @@ Installation of external commands recommended with the install script: https://g
 * check_qr: check URLs from QR-codes in pictures against URL blacklist and corresponding domains against reputation blacklists
 * check_rcptlimit: check number of recipients (in To and Cc headers) against limit
 * check_string: check raw email data for combination of strings
+* check_yara: check raw email data (or attachments) against YARA rules
 * decrypt_pdf: attempt to decrypt PDF using a provided list of passwords and optionally scan contents with AV and removes encryption
 * decrypt_zip: attempt to decrypt ZIP container using a provided list of passwords and optionally scan contents with AV and removes encryption
 * dkim_header: add header with result of SpamLogic DKIM check

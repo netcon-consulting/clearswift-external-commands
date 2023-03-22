@@ -1,6 +1,6 @@
-# dmarc_report.py V5.0.0
+# dmarc_report.py V6.0.0
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from string import Template
@@ -26,7 +26,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     :type reformat_header: bool
     """
     try:
-        xml_report = read_file(input, ignore_errors=True)
+        xml_report = read_text(input, ignore_errors=True)
     except Exception as ex:
         write_log(log, ex)
 
