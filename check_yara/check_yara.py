@@ -1,4 +1,4 @@
-# check_yara.py V1.0.0
+# check_yara.py V1.0.1
 #
 # Copyright (c) 2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -37,12 +37,17 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     try:
         rules = yara.compile(source="\n".join(sorted(set(list_rules))))
-    except Exception as ex:
+    except Exception:
         write_log(log, "Invalid YARA rules")
 
         return ReturnCode.ERROR
 
-    matches = rule.match(data=data)
+    try:
+        matches = rules.match(data=data)
+    except Exception:
+        write_log(log, "Error scanning data")
+
+        return ReturnCode.ERROR
 
     if matches:
         write_log(log, str(matches)[1:-1])
