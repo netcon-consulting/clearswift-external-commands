@@ -1,4 +1,4 @@
-# command_library.py V10.0.0
+# command_library.py V10.1.0
 #
 # Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -582,7 +582,7 @@ def write_email(email, path_email, reformat_header):
         list_header = list()
 
         for (key, value) in email.items():
-            list_header.append((key, str(value).replace("\n", " ").replace("\r", " ")))
+            list_header.append((key, str(value).replace("\n", " ").replace("\r", " ").replace("\t", " ")))
 
         for key in set(email.keys()):
             del email[key]
