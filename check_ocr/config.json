@@ -19,6 +19,7 @@
             "PNG": [ ],
             "TIFF": [ ]
         },
+        "timeout": 300,
         "responses": {
             "NONE": "No regex detected",
             "DETECTED": "Regex detected (%LOGTEXT%)",
