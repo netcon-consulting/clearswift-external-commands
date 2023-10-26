@@ -1,5 +1,8 @@
 {
     "Remove tag": {
+        "modules": [
+            "beautifulsoup4"
+        ],
         "list_address": [
             "Internal Domains"
         ],

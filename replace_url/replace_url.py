@@ -1,6 +1,6 @@
-# replace_url.py V7.0.0
+# replace_url.py V8.0.0
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -72,7 +72,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         content_html = part_html.get_payload(decode=True).decode("utf-8", errors="ignore")
 
         if not keyword_found:
-            text_html = html2text(content_html)
+            text_html = extract_text(content_html)
 
             for pattern in set_pattern:
                 match = re.search(pattern, text_html)

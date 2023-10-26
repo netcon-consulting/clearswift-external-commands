@@ -1,5 +1,8 @@
 {
     "Replace URL": {
+        "modules": [
+            "beautifulsoup4"
+        ],
         "list_lexical": [
             "Replace URL"
         ],

@@ -1,4 +1,4 @@
-# command_library.py V10.1.0
+# command_library.py V11.0.0
 #
 # Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -21,7 +21,7 @@ from subprocess import run, PIPE, DEVNULL
 from socket import socket, AF_INET, SOCK_STREAM
 from urllib.parse import quote, unquote
 import pyzipper
-from bs4 import BeautifulSoup
+from lxml.html.html5parser import etree
 from dns.resolver import resolve
 
 CHARSET_UTF8 = "utf-8"
@@ -659,29 +659,14 @@ def end_escape(string):
 
     return num_blackslash % 2 != 0
 
-def html2text(html, strip=True):
+def extract_text(html):
     """
     Extract text from html.
 
     :type html: str
-    :type strip: bool
     :rtype: str
     """
-    soup = BeautifulSoup(html, features="html5lib")
-
-    for script in soup([ "script", "style" ]):
-        script.extract()
-
-    text = soup.get_text()
-
-    if strip:
-        lines = ( line.strip() for line in text.splitlines() )
-
-        chunks = ( phrase.strip() for line in lines for phrase in line.split("  ") )
-
-        text = "\n".join( chunk for chunk in chunks if chunk )
-
-    return text
+    return "\n".join(etree.fromstring(html, parser=etree.HTMLParser()).xpath("//text()"))
 
 def string_ascii(string):
     """

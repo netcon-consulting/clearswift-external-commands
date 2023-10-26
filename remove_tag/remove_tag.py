@@ -5,7 +5,7 @@
 
 import re
 from email.utils import getaddresses
-import bs4
+from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -140,7 +140,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             body_modified = False
 
-            soup = bs4.BeautifulSoup(content, features="html5lib")
+            soup = BeautifulSoup(content, features="html5lib")
 
             list_tag = soup.find_all("div", id=re.compile(r".*{}.*".format(re.escape(config.html_id))))
 

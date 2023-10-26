@@ -1,6 +1,6 @@
-# rewrite_url.py V7.0.1
+# rewrite_url.py V8.0.0
 #
-# Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2022-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -214,7 +214,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
     dict_url = dict()
 
-    for url in set(re.findall(PATTERN_URL, html2text(content))):
+    for url in set(re.findall(PATTERN_URL, extract_text(content))):
         for pattern in set_exception:
             if re.search(pattern, url) is not None:
                 break
