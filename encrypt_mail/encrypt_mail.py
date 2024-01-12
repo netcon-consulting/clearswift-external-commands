@@ -1,12 +1,12 @@
-# encrypt_mail.py V6.1.0
+# encrypt_mail.py V6.1.1
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
 import random
 import string
-from email.message import EmailMessage
+from email import message, policy
 from email.utils import parseaddr, getaddresses
 import smtplib
 
@@ -96,7 +96,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.ERROR
 
     # send email with encrypted original mail attached to recipients
-    email_message = EmailMessage()
+    email_message = message.EmailMessage(policy=policy.SMTP)
     email_message["Subject"] = header_subject
     email_message["From"] = address_sender
     email_message["To"] = ", ".join(address_recipient["To"])
@@ -114,7 +114,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.ERROR
 
     # send email with password to sender
-    email_message = EmailMessage()
+    email_message = message.EmailMessage(policy=policy.SMTP)
     email_message["Subject"] = "Re: {}".format(header_subject)
     email_message["From"] = address_sender
     email_message["To"] = address_sender

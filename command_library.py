@@ -1,6 +1,6 @@
-# command_library.py V11.0.0
+# command_library.py V11.0.1
 #
-# Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 """
@@ -559,7 +559,7 @@ def read_email(path_email, disable_splitting):
     :type disable_splitting: bool
     :rtype: email.message.Message
     """
-    email_policy = EmailPolicyCustom().clone(header_factory=HeaderRegistry(base_class=BaseHeaderCustom), disable_splitting=disable_splitting)
+    email_policy = EmailPolicyCustom().clone(linesep="\r\n", header_factory=HeaderRegistry(base_class=BaseHeaderCustom), disable_splitting=disable_splitting)
     email_policy.content_manager.add_get_handler("text", get_text_content)
 
     try:
