@@ -842,7 +842,7 @@ def extract_part(email, content_type):
 
 def annotate_html(content, annotation, on_top=True):
     """
-    Annotate html body.
+    Annotate HTML body.
 
     :type content: str
     :type annotation: str

@@ -11,7 +11,7 @@ CONFIG_PARAMETERS = ( )
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
-    Set charset in meta tag in html body to charset defined in content-type header.
+    Set charset in meta tag in HTML body to charset defined in content-type header.
 
     :type input: str
     :type log: str

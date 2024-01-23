@@ -12,7 +12,7 @@ CONFIG_PARAMETERS = ( "keyword_list", "url_replacement" )
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
-    Replace URLs in text and html body if one of the keywords is found.
+    Replace URLs in text and HTML body if one of the keywords is found.
 
     :type input: str
     :type log: str

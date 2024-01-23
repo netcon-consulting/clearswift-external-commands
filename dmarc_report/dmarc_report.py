@@ -15,7 +15,7 @@ TEMPLATE_SYSLOG = Template("org=$name_org, id=$id_report, begin=$date_begin, end
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
-    Parse DMARC xml reports and write results to syslog.
+    Parse DMARC XML reports and write results to syslog.
 
     :type input: str
     :type log: str

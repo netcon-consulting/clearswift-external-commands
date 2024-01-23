@@ -36,7 +36,7 @@
             "substitution_list": { "type": "string", "description": "name of lexical expression list with URL substitutions (empty for disabling replacing URL parts)", "value": "\"URL substitutions\"" },
             "token_list": { "type": "string", "description": "name of lexical expression list with substitution tokens (empty for disabling substitution tokens)", "value": "\"Substitution tokens\"" },
             "annotation_text": { "type": "string", "description": "name of annotation applied to modified text body (empty for disabling annotating text body)", "value": "\"\"" },
-            "annotation_html": { "type": "string", "description": "name of annotation applied to modified html body (empty for disabling annotating html body)", "value": "\"\"" }
+            "annotation_html": { "type": "string", "description": "name of annotation applied to modified HTML body (empty for disabling annotating HTML body)", "value": "\"\"" }
         }
     }
 }

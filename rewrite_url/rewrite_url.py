@@ -144,7 +144,7 @@ def modify_text(content, set_exception, dict_modified, set_redirect, request_tim
 
 def modify_html(content, charset, set_exception, dict_modified, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace):
     """
-    Rewrite URLs in html body.
+    Rewrite URLs in HTML body.
 
     :type content: str
     :type charset: str
@@ -261,7 +261,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
-    Rewrite URLs in text and html body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
+    Rewrite URLs in text and HTML body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
 
     :type input: str
     :type log: str

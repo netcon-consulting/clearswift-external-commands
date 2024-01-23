@@ -1,7 +1,7 @@
 add_tag.py V6.1.0
 =================
 
-Add tags in address and subject headers, text and html bodies and calendar objects.
+Add tags in address and subject headers, text and HTML bodies and calendar objects.
 
 ## Parameters
 * address_tag (string): address tag for from, to and cc headers (empty for disabling address tagging)
@@ -9,9 +9,9 @@ Add tags in address and subject headers, text and html bodies and calendar objec
 * subject_tag (string): tag for subject header (empty for disabling subject tagging)
 * text_tag (string): name of annotation for tagging text body (empty for disabling text body tagging)
 * text_top (boolean): insert text tag at top else at the bottom
-* html_tag (string): name of annotation for tagging html body (empty for disabling html body tagging)
-* html_top (boolean): insert html tag at top else at the bottom
-* html_id (string): ID of html tag
+* html_tag (string): name of annotation for tagging HTML body (empty for disabling HTML body tagging)
+* html_top (boolean): insert HTML tag at top else at the bottom
+* html_id (string): ID of HTML tag
 * calendar_tag (string): calendar tag for organizer field (empty for disabling calendar tagging)
 
 ## Address lists

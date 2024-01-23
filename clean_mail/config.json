@@ -1,0 +1,29 @@
+{
+    "Clean mail": {
+        "modules": [
+            "beautifulsoup4"
+        ],
+        "list_lexical": [
+            "Clean regex",
+            "Clean annotation"
+        ],
+        "media_types": {
+            "SMTP": [ "not_protected" ]
+        },
+        "parameters": "-i \"%ITEMID%\" -c \"Config - Clean mail\" %FILENAME% %LOGNAME% \"External command - clean_mail\"",
+        "responses": {
+            "NONE": "Not modified",
+            "DETECTED": "Error (%LOGTEXT%)",
+            "MODIFIED": "Mail cleaned",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Clean mail" }
+        },
+        "config": {
+            "regex_list": { "type": "string", "description": "name of lexical expression list with regular expressions (empty for disabling regular expressions removal)", "value": "\"Clean regex\"" },
+            "annotation_list": { "type": "string", "description": "name of lexical expression list with annotation names (empty for disabling annotation removal)", "value": "\"Clean annotation\"" },
+            "clean_attachment": { "type": "boolean", "description": "clean attached mails", "value": "false" }
+        }
+    }
+}

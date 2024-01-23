@@ -1,7 +1,7 @@
 rewrite_url.py V8.0.0
 =====================
 
-Rewrite URLs in text and html body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
+Rewrite URLs in text and HTML body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.
 
 ## Parameters
 * exception_list (string): name of URL list with URLs that will not be rewritten (empty for disabling rewrite exceptions)
@@ -13,7 +13,7 @@ Rewrite URLs in text and html body by resolving redirects (and optionally check 
 * substitution_list (string): name of lexical expression list with URL substitutions (empty for disabling replacing URL parts)
 * token_list (string): name of lexical expression list with substitution tokens (empty for disabling substitution tokens)
 * annotation_text (string): name of annotation applied to modified text body (empty for disabling annotating text body)
-* annotation_html (string): name of annotation applied to modified html body (empty for disabling annotating html body)
+* annotation_html (string): name of annotation applied to modified HTML body (empty for disabling annotating HTML body)
 
 ## URL lists
 * Redirector domains: list of redirector domains

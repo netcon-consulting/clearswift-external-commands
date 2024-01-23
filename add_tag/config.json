@@ -22,9 +22,9 @@
             "subject_tag": { "type": "string", "description": "tag for subject header (empty for disabling subject tagging)", "value": "\"[EXTERNAL]\"" },
             "text_tag": { "type": "string", "description": "name of annotation for tagging text body (empty for disabling text body tagging)", "value": "\"\"" },
             "text_top": { "type": "boolean", "description": "insert text tag at top else at the bottom", "value": "true" },
-            "html_tag": { "type": "string", "description": "name of annotation for tagging html body (empty for disabling html body tagging)", "value": "\"\"" },
-            "html_top": { "type": "boolean", "description": "insert html tag at top else at the bottom", "value": "true" },
-            "html_id": { "type": "string", "description": "ID of html tag", "value": "\"tag_mail_1\"" },
+            "html_tag": { "type": "string", "description": "name of annotation for tagging HTML body (empty for disabling HTML body tagging)", "value": "\"\"" },
+            "html_top": { "type": "boolean", "description": "insert HTML tag at top else at the bottom", "value": "true" },
+            "html_id": { "type": "string", "description": "ID of HTML tag", "value": "\"tag_mail_1\"" },
             "calendar_tag": { "type": "string", "description": "calendar tag for organizer field (empty for disabling calendar tagging)", "value": "\"[EXT]\"" }
         }
     }

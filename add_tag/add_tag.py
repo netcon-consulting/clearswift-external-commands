@@ -15,7 +15,7 @@ RECURSION_LIMIT = 5000
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
-    Add tags in address and subject headers, text and html bodies and calendar objects.
+    Add tags in address and subject headers, text and HTML bodies and calendar objects.
 
     :type input: str
     :type log: str
@@ -141,7 +141,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             email_modified = True
 
     if config.html_tag:
-        # add html body tag
+        # add HTML body tag
 
         try:
             part = extract_part(email, "text/html")

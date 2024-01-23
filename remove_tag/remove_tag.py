@@ -15,7 +15,7 @@ RECURSION_LIMIT = 5000
 
 def run_command(input, log, config, additional, optional, disable_splitting, reformat_header):
     """
-    Remove tags in address and subject headers, text and html bodies and calendar objects.
+    Remove tags in address and subject headers, text and HTML bodies and calendar objects.
 
     :type input: str
     :type log: str
@@ -126,7 +126,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 email_modified = True
 
     if (config.html_id or (config.address_tag and config.clean_html)):
-        # remove html body tag and address tag from html body
+        # remove HTML body tag and address tag from HTML body
 
         try:
             part = extract_part(email, "text/html")
