@@ -1,9 +1,10 @@
-# clean_mail.py V1.0.0
+# clean_mail.py V1.0.1
 #
 # Copyright (c) 2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
+from email.message import EmailMessage
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
@@ -176,7 +177,12 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 attached_email = part.get_payload()[0]
 
                 if isinstance(attached_email, EmailMessage):
-                    email_modified |= clean_mail(attached_email, list_pattern, list_annotation)
+                    try:
+                        email_modified |= clean_mail(attached_email, list_pattern, list_annotation)
+                    except Exception as ex:
+                        write_log(log, ex)
+
+                        return ReturnCode.DETECTED
 
     if email_modified:
         try:
