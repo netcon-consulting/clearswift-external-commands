@@ -1,4 +1,4 @@
-# command_library.py V11.0.1
+# command_library.py V11.0.2
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -11,8 +11,8 @@ import enum
 from collections import namedtuple
 from email import message_from_binary_file, errors
 from email.policy import EmailPolicy
-from email.headerregistry import HeaderRegistry, BaseHeader
-from email._header_value_parser import TokenList, Terminal, _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, SPECIALS
+from email.headerregistry import HeaderRegistry, BaseHeader, MessageIDHeader
+from email._header_value_parser import _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, get_dot_atom_text, get_word, get_cfws, get_no_fold_literal, get_domain, get_unstructured, TokenList, Terminal, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, MessageID, MsgID, ObsLocalPart, InvalidMessageID, CFWS_LEADER, PHRASE_ENDS, SPECIALS
 from email.utils import _has_surrogates
 from xml.sax import make_parser, handler
 from io import BytesIO
@@ -378,6 +378,160 @@ def fold_mime_parameters(part, lines, maxlen, encoding, disable_splitting):
             if value:
                 lines[-1] += ";"
 
+def get_obs_local_part(value):
+    obs_local_part = ObsLocalPart()
+
+    last_non_ws_was_dot = False
+
+    while value and (value[0] == "\\" or value[0] == "[" or value[0] not in PHRASE_ENDS):
+        if value[0] == ".":
+            if last_non_ws_was_dot:
+                obs_local_part.defects.append(errors.InvalidHeaderDefect("invalid repeated '.'"))
+
+            obs_local_part.append(DOT)
+
+            last_non_ws_was_dot = True
+
+            value = value[1:]
+
+            continue
+        elif value[0] == "\\":
+            obs_local_part.append(ValueTerminal(value[0], "misplaced-special"))
+
+            value = value[1:]
+
+            obs_local_part.defects.append(errors.InvalidHeaderDefect("'\\' character outside of quoted-string/ccontent"))
+
+            last_non_ws_was_dot = False
+
+            continue
+        elif value[0] == "[":
+            value = value[1:]
+
+            obs_local_part.defects.append(errors.InvalidHeaderDefect("'[' character in local part"))
+
+            last_non_ws_was_dot = False
+
+            continue
+
+        if obs_local_part and obs_local_part[-1].token_type != "dot":
+            obs_local_part.defects.append(errors.InvalidHeaderDefect("missing '.' between words"))
+
+        try:
+            (token, value) = get_word(value)
+
+            last_non_ws_was_dot = False
+        except errors.HeaderParseError:
+            if value[0] not in CFWS_LEADER:
+                raise
+
+            (token, value) = get_cfws(value)
+
+        obs_local_part.append(token)
+
+    if (obs_local_part[0].token_type == "dot" or obs_local_part[0].token_type == "cfws" and obs_local_part[1].token_type == "dot"):
+        obs_local_part.defects.append(errors.InvalidHeaderDefect("Invalid leading '.' in local part"))
+
+    if (obs_local_part[-1].token_type == "dot" or obs_local_part[-1].token_type == "cfws" and obs_local_part[-2].token_type == "dot"):
+        obs_local_part.defects.append(errors.InvalidHeaderDefect("Invalid trailing '.' in local part"))
+
+    if obs_local_part.defects:
+        obs_local_part.token_type = "invalid-obs-local-part"
+
+    return ( obs_local_part, value )
+
+def get_msg_id(value):
+    msg_id = MsgID()
+
+    if value and value[0] in CFWS_LEADER:
+        token, value = get_cfws(value)
+
+        msg_id.append(token)
+
+    if not value or value[0] != "<":
+        raise errors.HeaderParseError("expected msg-id but found '{}'".format(value))
+
+    msg_id.append(ValueTerminal('<', 'msg-id-start'))
+
+    value = value[1:]
+
+    try:
+        (token, value) = get_dot_atom_text(value)
+    except errors.HeaderParseError:
+        try:
+            (token, value) = get_obs_local_part(value)
+
+            msg_id.defects.append(errors.ObsoleteHeaderDefect("obsolete id-left in msg-id"))
+        except errors.HeaderParseError:
+            raise errors.HeaderParseError("expected dot-atom-text or obs-id-left but found '{}'".format(value))
+
+    msg_id.append(token)
+
+    if not value or value[0] != "@":
+        msg_id.defects.append(errors.InvalidHeaderDefect("msg-id with no id-right"))
+
+        if value and value[0] == ">":
+            msg_id.append(ValueTerminal(">", "msg-id-end"))
+
+            value = value[1:]
+
+        return ( msg_id, value )
+
+    msg_id.append(ValueTerminal('@', 'address-at-symbol'))
+
+    value = value[1:]
+
+    try:
+        (token, value) = get_dot_atom_text(value)
+    except errors.HeaderParseError:
+        try:
+            (token, value) = get_no_fold_literal(value)
+        except errors.HeaderParseError as e:
+            try:
+                (token, value) = get_domain(value)
+
+                msg_id.defects.append(errors.ObsoleteHeaderDefect("obsolete id-right in msg-id"))
+            except errors.HeaderParseError:
+                raise errors.HeaderParseError("expected dot-atom-text, no-fold-literal or obs-id-right but found '{}'".format(value))
+
+    msg_id.append(token)
+
+    if value and value[0] == ">":
+        value = value[1:]
+    else:
+        msg_id.defects.append(errors.InvalidHeaderDefect("missing trailing '>' on msg-id"))
+
+    msg_id.append(ValueTerminal('>', 'msg-id-end'))
+
+    if value and value[0] in CFWS_LEADER:
+        (token, value) = get_cfws(value)
+
+        msg_id.append(token)
+
+    return ( msg_id, value )
+
+def parse_message_id(value):
+    message_id = MessageID()
+
+    try:
+        (token, value) = get_msg_id(value)
+
+        message_id.append(token)
+    except errors.HeaderParseError as ex:
+        token = get_unstructured(value)
+
+        message_id = InvalidMessageID(token)
+
+        message_id.defects.append(errors.InvalidHeaderDefect("Invalid msg-id: {!r}".format(ex)))
+    else:
+        if value:
+            message_id.defects.append(errors.InvalidHeaderDefect("Unexpected {!r}".format(value)))
+
+    return message_id
+
+class MessageIDHeaderCustom(MessageIDHeader):
+    value_parser = staticmethod(parse_message_id)
+
 def get_list(list_type, regex_list, regex_item, last_config=LAST_CONFIG):
     """
     Extract address lists from CS config filtered by regex matches on list name and item.
@@ -559,7 +713,10 @@ def read_email(path_email, disable_splitting):
     :type disable_splitting: bool
     :rtype: email.message.Message
     """
-    email_policy = EmailPolicyCustom().clone(linesep="\r\n", header_factory=HeaderRegistry(base_class=BaseHeaderCustom), disable_splitting=disable_splitting)
+    header_factory = HeaderRegistry(base_class=BaseHeaderCustom)
+    header_factory.map_to_type("message-id", MessageIDHeaderCustom)
+
+    email_policy = EmailPolicyCustom().clone(linesep="\r\n", header_factory=header_factory, disable_splitting=disable_splitting)
     email_policy.content_manager.add_get_handler("text", get_text_content)
 
     try:
