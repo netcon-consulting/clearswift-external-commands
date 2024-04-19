@@ -1,4 +1,4 @@
-# command_library.py V11.0.2
+# command_library.py V11.0.3
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -12,7 +12,7 @@ from collections import namedtuple
 from email import message_from_binary_file, errors
 from email.policy import EmailPolicy
 from email.headerregistry import HeaderRegistry, BaseHeader, MessageIDHeader
-from email._header_value_parser import _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, get_dot_atom_text, get_word, get_cfws, get_no_fold_literal, get_domain, get_unstructured, TokenList, Terminal, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, MessageID, MsgID, ObsLocalPart, InvalidMessageID, CFWS_LEADER, PHRASE_ENDS, SPECIALS
+from email._header_value_parser import _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, get_dot_atom_text, get_word, get_cfws, get_no_fold_literal, get_domain, get_unstructured, TokenList, Terminal, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, MessageID, MsgID, ObsLocalPart, InvalidMessageID, CFWS_LEADER, PHRASE_ENDS, DOT, SPECIALS
 from email.utils import _has_surrogates
 from xml.sax import make_parser, handler
 from io import BytesIO
