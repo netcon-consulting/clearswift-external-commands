@@ -9,6 +9,7 @@ Installation of external commands recommended with the install script: https://g
 
 ## External commands
 * add_tag: add tags in address and subject headers, text and HTML bodies and calendar objects
+* check_condition: check custom condition
 * check_internal: check whether sender IP is in internal networks and sender domain is internal domain
 * check_ocr: check text in pictures against regular expression blacklist
 * check_private: check sensitivity header for private keyword and that private mails not exceed size limit and have no attachments
