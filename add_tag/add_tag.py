@@ -1,4 +1,4 @@
-# add_tag.py V7.0.0
+# add_tag.py V8.0.0
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -114,7 +114,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         # add text body tag
 
         try:
-            part = extract_part(email, "text/plain")
+            part = extract_part(email, TYPE_TEXT)
         except Exception as ex:
             write_log(log, ex)
 
@@ -144,7 +144,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         # add HTML body tag
 
         try:
-            part = extract_part(email, "text/html")
+            part = extract_part(email, TYPE_HTML)
         except Exception as ex:
             write_log(log, ex)
 
@@ -171,7 +171,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         # add calendar tag
 
         try:
-            part = extract_part(email, "text/calendar")
+            part = extract_part(email, TYPE_CALENDAR)
         except Exception as ex:
             write_log(log, ex)
 

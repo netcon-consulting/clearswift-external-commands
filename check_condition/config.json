@@ -1,0 +1,22 @@
+{
+    "Check condition": {
+        "list_lexical": [
+            "Condition check"
+        ],
+        "media_types": {
+            "SMTP": [ "not_protected" ]
+        },
+        "parameters": "-i \"%ITEMID%\" -a \"client_ip=%AUDITMSGRCVIP%\" -a \"client_hostname=%AUDITMSGRCVNAME%\" -a \"sender=%SENDER%\" -c \"Config - Check condition\" %FILENAME% %LOGNAME% \"External command - check_condition\"",
+        "responses": {
+            "NONE": "Condition false",
+            "DETECTED": "Condition true",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Check condition" }
+        },
+        "config": {
+            "condition_check": { "type": "string", "description": "name of lexical expression list with custom condition check", "value": "Condition check" }
+        }
+    }
+}

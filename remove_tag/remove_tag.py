@@ -1,6 +1,6 @@
-# remove_tag.py V6.1.0
+# remove_tag.py V7.0.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -86,7 +86,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         # remove text body tag and address tag from text body
 
         try:
-            part = extract_part(email, "text/plain")
+            part = extract_part(email, TYPE_TEXT)
         except Exception as ex:
             write_log(log, ex)
 
@@ -129,7 +129,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         # remove HTML body tag and address tag from HTML body
 
         try:
-            part = extract_part(email, "text/html")
+            part = extract_part(email, TYPE_HTML)
         except Exception as ex:
             write_log(log, ex)
 
@@ -174,7 +174,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         # remove calendar tag
 
         try:
-            part = extract_part(email, "text/calendar")
+            part = extract_part(email, TYPE_CALENDAR)
         except Exception as ex:
             write_log(log, ex)
 

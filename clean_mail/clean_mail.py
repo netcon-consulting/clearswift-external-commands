@@ -1,4 +1,4 @@
-# clean_mail.py V1.0.1
+# clean_mail.py V2.0.0
 #
 # Copyright (c) 2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -27,7 +27,7 @@ def clean_mail(email, list_pattern, list_annotation):
     email_modified = False
 
     # clean text body
-    part = extract_part(email, "text/plain")
+    part = extract_part(email, TYPE_TEXT)
 
     if part is not None:
         (part, charset, content) = part
@@ -68,7 +68,7 @@ def clean_mail(email, list_pattern, list_annotation):
             email_modified = True
 
     # clean HTML body
-    part = extract_part(email, "text/html")
+    part = extract_part(email, TYPE_HTML)
 
     if part is not None:
         (part, charset, content) = part

@@ -1,6 +1,6 @@
-# replace_url.py V8.0.0
+# replace_url.py V9.0.0
 #
-# Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -45,9 +45,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     part_html = None
 
     for part in email.walk():
-        if part_text is None and part.get_content_type() == "text/plain":
+        if part_text is None and part.get_content_type() == TYPE_TEXT:
             part_text = part
-        elif part_html is None and part.get_content_type() == "text/html":
+        elif part_html is None and part.get_content_type() == TYPE_HTML:
             part_html = part
 
         if part_text is not None and part_html is not None:
