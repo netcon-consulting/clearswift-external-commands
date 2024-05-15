@@ -1,4 +1,4 @@
-# command_library.py V11.0.3
+# command_library.py V11.0.4
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -823,7 +823,7 @@ def extract_text(html):
     :type html: str
     :rtype: str
     """
-    return "\n".join(etree.fromstring(html, parser=etree.HTMLParser()).xpath("//text()"))
+    return "\n".join(etree.fromstring(html.encode(), parser=etree.HTMLParser()).xpath("//text()"))
 
 def string_ascii(string):
     """

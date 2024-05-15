@@ -1,6 +1,6 @@
-# add_tag.py V6.1.0
+# add_tag.py V7.0.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -39,37 +39,37 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     email_modified = False
 
-    if config.address_tag and "From" in email:
+    if config.address_tag:
         # add address tag
 
-        address_tag = "{} ".format(config.address_tag)
+        for header_keyword in [ "From", "Sender" ]:
+            if header_keyword in email:
+                address_tag = "{} ".format(config.address_tag)
 
-        (prefix, address) = parseaddr(email["From"])
+                (prefix, address) = parseaddr(email[header_keyword])
 
-        if address and not prefix.startswith(address_tag):
-            if prefix:
-                header = '"{} {}" <{}>'.format(config.address_tag, prefix, address)
-            else:
-                header = '"{} {}" <{}>'.format(config.address_tag, address, address)
+                if address and not prefix.startswith(address_tag):
+                    if prefix:
+                        header = '"{} {}" <{}>'.format(config.address_tag, prefix, address)
+                    else:
+                        header = '"{} {}" <{}>'.format(config.address_tag, address, address)
 
-            del email["From"]
-            email["From"] = header
+                    del email[header_keyword]
+                    email[header_keyword] = header
 
-            email_modified = True
+                    email_modified = True
 
         if config.internal_list:
             # add address tag to external addresses in To/Cc header
 
             try:
-                set_address = set(address_list(config.internal_list))
+                set_domain = set(url_list(config.internal_list))
             except Exception as ex:
                 write_log(log, ex)
 
                 return ReturnCode.DETECTED
 
             pattern_domain = re.compile(r"^\S+@(\S+)")
-
-            set_domain = { match.group(1).lower() for match in [ re.search(pattern_domain, address) for address in set_address ] if match is not None }
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:

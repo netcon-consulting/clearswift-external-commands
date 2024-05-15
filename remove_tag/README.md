@@ -12,8 +12,5 @@ Remove tags in address and subject headers, text and HTML bodies and calendar ob
 * html_id (string): ID of HTML tag (empty for disabling HTML body untagging)
 * calendar_tag (string): calendar tag for organizer field (empty for disabling calendar untagging)
 
-## Address lists
-* Internal domains: list of internal domains
-
 ## Hold Areas
 * Remove tag: mails with errors
