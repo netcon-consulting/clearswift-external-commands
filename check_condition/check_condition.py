@@ -1,4 +1,4 @@
-# check_condition.py V1.0.0
+# check_condition.py V1.0.1
 #
 # Copyright (c) 2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -26,8 +26,8 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    if additional.sender.startswith("S:"):
-        sender = additional.sender[2:]
+    if additional.sender.startswith("S:<"):
+        sender = additional.sender[3:-1]
     else:
         write_log(log, "Invalid sender")
 

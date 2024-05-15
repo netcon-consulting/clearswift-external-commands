@@ -16,7 +16,7 @@
             "detected": { "primary": "hold:Check condition" }
         },
         "config": {
-            "condition_check": { "type": "string", "description": "name of lexical expression list with custom condition check", "value": "Condition check" }
+            "condition_check": { "type": "string", "description": "name of lexical expression list with custom condition check", "value": "\"Condition check\"" }
         }
     }
 }
