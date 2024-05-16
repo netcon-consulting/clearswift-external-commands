@@ -1,4 +1,4 @@
-check_condition.py V1.0.2
+check_condition.py V1.0.3
 =========================
 
 Check custom condition.

@@ -1,4 +1,4 @@
-# check_condition.py V1.0.2
+# check_condition.py V1.0.3
 #
 # Copyright (c) 2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -28,7 +28,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    match = re.search(r"S:<?([^>]+)>?", additional.sender)
+    match = re.search(r"S:<?([^>]*)>?", additional.sender)
 
     if match is None:
         write_log(log, "Invalid sender")
