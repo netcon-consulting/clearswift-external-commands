@@ -1,4 +1,4 @@
-# encrypt_mail.py V6.1.1
+# encrypt_mail.py V6.1.2
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -49,18 +49,23 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.NONE
 
     if "From" not in email:
-        write_log(log, "Header from does not exist")
+        write_log(log, "From header does not exist")
 
         return ReturnCode.ERROR
 
     header_from = str(email["From"])
 
     if not header_from:
-        write_log(log, "Header from is empty")
+        write_log(log, "From header is empty")
 
         return ReturnCode.ERROR
 
-    address_sender = parseaddr(header_from)[1]
+    try:
+        address_sender = parseaddr(header_from)[1]
+    except Exception:
+        write_log(log, "Cannot parse From header".format(header_keyword))
+
+        return ReturnCode.ERROR
 
     if not address_sender:
         write_log(log, "Cannot find sender address")
@@ -72,7 +77,14 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     # collect email addresses in To and Cc headers
     for header_keyword in [ "To", "Cc" ]:
         if header_keyword in email:
-            address_recipient[header_keyword] = { address for (_, address) in getaddresses(email.get_all(header_keyword)) }
+            try:
+                list_address = getaddresses(email.get_all(header_keyword))
+            except Exception:
+                write_log(log, "Cannot parse {} header".format(header_keyword))
+
+                return ReturnCode.ERROR
+
+            address_recipient[header_keyword] = { address for (_, address) in list_address }
 
     if "To" not in address_recipient:
         write_log(log, "Cannot find recipient address")

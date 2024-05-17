@@ -1,6 +1,6 @@
-# check_rcptlimit.py V6.1.0
+# check_rcptlimit.py V6.1.1
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from email.utils import getaddresses
@@ -28,7 +28,14 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    if len(getaddresses(email.get_all("To") + email.get_all("Cc"))) > config.recipient_limit:
+    try:
+        list_address = getaddresses(email.get_all("To") + email.get_all("Cc"))
+    except Exception:
+        write_log(log, "Cannot parse To/Cc header")
+
+        return ReturnCode.ERROR
+
+    if len(list_address) > config.recipient_limit:
         return ReturnCode.DETECTED
 
     return ReturnCode.NONE

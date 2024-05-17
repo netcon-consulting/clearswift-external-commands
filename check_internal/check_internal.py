@@ -1,6 +1,6 @@
-# check_internal.py V7.1.0
+# check_internal.py V7.1.1
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 import re
@@ -31,14 +31,14 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.ERROR
 
     if "Received" not in email:
-        write_log(log, "Header received does not exist")
+        write_log(log, "Received header does not exist")
 
         return ReturnCode.ERROR
 
     header_received = str(email.get("Received"))
 
     if not header_received:
-        write_log(log, "Header received is empty")
+        write_log(log, "Received header is empty")
 
         return ReturnCode.ERROR
 
@@ -72,18 +72,23 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.NONE
 
     if "From" not in email:
-        write_log(log, "Header does not exist")
+        write_log(log, "From header does not exist")
 
         return ReturnCode.ERROR
 
     header_from = str(email["From"])
 
     if not header_from:
-        write_log(log, "Header from is empty")
+        write_log(log, "From header is empty")
 
         return ReturnCode.ERROR
 
-    sender_address = parseaddr(header_from)[1]
+    try:
+        sender_address = parseaddr(header_from)[1]
+    except Exception:
+        write_log(log, "Cannot parse From header".format(header_keyword))
+
+        return ReturnCode.ERROR
 
     if not sender_address:
         write_log(log, "Cannot find sender address")

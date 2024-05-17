@@ -1,4 +1,4 @@
-check_rcptlimit.py V6.1.0
+check_rcptlimit.py V6.1.1
 =========================
 
 Check number of recipients (in to and cc headers) against limit.

@@ -1,4 +1,4 @@
-# add_tag.py V8.0.0
+# add_tag.py V8.0.1
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -46,7 +46,12 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             if header_keyword in email:
                 address_tag = "{} ".format(config.address_tag)
 
-                (prefix, address) = parseaddr(email[header_keyword])
+                try:
+                    (prefix, address) = parseaddr(email[header_keyword])
+                except Exception:
+                    write_log(log, "Cannot parse {} header".format(header_keyword))
+
+                    return ReturnCode.DETECTED
 
                 if address and not prefix.startswith(address_tag):
                     if prefix:
@@ -73,7 +78,12 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
-                    list_address = getaddresses(email.get_all(header_keyword))
+                    try:
+                        list_address = getaddresses(email.get_all(header_keyword))
+                    except Exception:
+                        write_log(log, "Cannot parse {} header".format(header_keyword))
+
+                        return ReturnCode.DETECTED
 
                     if list_address:
                         header = ""
