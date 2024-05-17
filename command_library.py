@@ -1,4 +1,4 @@
-# command_library.py V11.1.0
+# command_library.py V11.1.1
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -448,7 +448,7 @@ def get_msg_id(value):
     msg_id = MsgID()
 
     if value and value[0] in CFWS_LEADER:
-        token, value = get_cfws(value)
+        (token, value) = get_cfws(value)
 
         msg_id.append(token)
 
@@ -458,6 +458,15 @@ def get_msg_id(value):
     msg_id.append(ValueTerminal('<', 'msg-id-start'))
 
     value = value[1:]
+
+    if value and value[0] == ">":
+        msg_id.defects.append(errors.InvalidHeaderDefect("empty msg-id"))
+
+        msg_id.append(ValueTerminal(">", "msg-id-end"))
+
+        value = value[1:]
+
+        return ( msg_id, value )
 
     try:
         (token, value) = get_dot_atom_text(value)
