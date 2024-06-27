@@ -1,21 +1,21 @@
-# encrypt_mail.py V6.1.2
+# encrypt_mail.py V6.2.0
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
-import random
-import string
+from re import search, escape, sub, IGNORECASE
+from random import choice
+from string import ascii_letters, digits, punctuation
 from email import message, policy
 from email.utils import parseaddr, getaddresses
-import smtplib
+from smtplib import SMTP
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
 CONFIG_PARAMETERS = ( "keyword_encryption", "password_length", "password_punctuation" )
 
-MESSAGE_RECIPIENT="You have received an encrypted email from {} attached to this email.\n\nThe password will be provided to you by the sender shortly.\n\nHave a nice day."
-MESSAGE_SENDER="The email has been encrypted with the password {} and sent.\n\nPlease provide the recipients with the password.\n\nHave a nice day."
+TEMPLATE_RECIPIENT = "You have received an encrypted email from {} attached to this email.\n\nThe password will be provided to you by the sender shortly.\n\nHave a nice day."
+TEMPLATE_SENDER = "The email has been encrypted with the password {} and sent.\n\nPlease provide the recipients with the password.\n\nHave a nice day."
 
 PORT_SMTP=10026
 
@@ -43,9 +43,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     header_subject = str(email["Subject"])
 
-    keyword_escaped = re.escape(config.keyword_encryption)
+    keyword_escaped = escape(config.keyword_encryption)
 
-    if not re.match(r"^{}".format(keyword_escaped), header_subject, re.IGNORECASE):
+    if not search(fr"^{keyword_escaped}", header_subject, IGNORECASE):
         return ReturnCode.NONE
 
     if "From" not in email:
@@ -63,7 +63,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     try:
         address_sender = parseaddr(header_from)[1]
     except Exception:
-        write_log(log, "Cannot parse From header".format(header_keyword))
+        write_log(log, "Cannot parse From header")
 
         return ReturnCode.ERROR
 
@@ -80,7 +80,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             try:
                 list_address = getaddresses(email.get_all(header_keyword))
             except Exception:
-                write_log(log, "Cannot parse {} header".format(header_keyword))
+                write_log(log, f"Cannot parse '{header_keyword}' header")
 
                 return ReturnCode.ERROR
 
@@ -92,13 +92,15 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.ERROR
 
     # remove encryption keyword from subject header
-    email = re.sub(r"(\n|^)Subject: *{} *".format(keyword_escaped), r"\1Subject: ", email.as_string(), count=1, flags=re.IGNORECASE)
-    header_subject = re.sub(r"^{} *".format(keyword_escaped), "", header_subject, flags=re.IGNORECASE)
+    email = sub(fr"(\n|^)Subject: *{keyword_escaped} *", r"\1Subject: ", email.as_string(), count=1, flags=IGNORECASE)
+    header_subject = sub(fr"^{keyword_escaped} *", "", header_subject, flags=IGNORECASE)
 
-    password_characters = string.ascii_letters + string.digits
+    password_characters = ascii_letters + digits
+
     if config.password_punctuation:
-        password_characters += string.punctuation
-    password = "".join(random.choice(password_characters) for i in range(config.password_length))
+        password_characters += punctuation
+
+    password = "".join(choice(password_characters) for _ in range(config.password_length))
 
     try:
         zip_archive = zip_encrypt({ ("email.eml", email) }, password)
@@ -109,16 +111,19 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     # send email with encrypted original mail attached to recipients
     email_message = message.EmailMessage(policy=policy.SMTP)
+
     email_message["Subject"] = header_subject
     email_message["From"] = address_sender
     email_message["To"] = ", ".join(address_recipient["To"])
+
     if "Cc" in address_recipient:
         email_message["Cc"] = ", ".join(address_recipient["Cc"])
-    email_message.set_content(MESSAGE_RECIPIENT.format(address_sender))
+
+    email_message.set_content(TEMPLATE_RECIPIENT.format(address_sender))
     email_message.add_attachment(zip_archive, maintype="application", subtype="zip", filename="email.zip")
 
     try:
-        with smtplib.SMTP("localhost", port=PORT_SMTP) as s:
+        with SMTP("localhost", port=PORT_SMTP) as s:
             s.send_message(email_message)
     except Exception:
         write_log(log, "Cannot send recipient email")
@@ -127,13 +132,15 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     # send email with password to sender
     email_message = message.EmailMessage(policy=policy.SMTP)
-    email_message["Subject"] = "Re: {}".format(header_subject)
+
+    email_message["Subject"] = f"Re: {header_subject}"
     email_message["From"] = address_sender
     email_message["To"] = address_sender
-    email_message.set_content(MESSAGE_SENDER.format(password))
+
+    email_message.set_content(TEMPLATE_SENDER.format(password))
 
     try:
-        with smtplib.SMTP("localhost", port=PORT_SMTP) as s:
+        with SMTP("localhost", port=PORT_SMTP) as s:
             s.send_message(email_message)
     except Exception:
         write_log(log, "Cannot send sender email")

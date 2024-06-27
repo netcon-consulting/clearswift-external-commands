@@ -30,7 +30,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     for list_string in config.search_strings:
         for string in list_string:
-            if email.find(string.encode(CHARSET_UTF8)) == -1:
+            if email.find(string.encode()) == -1:
                 break
         else:
             return ReturnCode.DETECTED

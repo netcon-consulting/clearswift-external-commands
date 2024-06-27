@@ -1,11 +1,11 @@
-# dmarc_report.py V6.0.0
+# dmarc_report.py V6.1.0
 #
-# Copyright (c) 2020-2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from string import Template
 from xml.etree import ElementTree
-import syslog
+from syslog import openlog, syslog, LOG_MAIL
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -33,7 +33,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.DETECTED
 
     try:
-        syslog.openlog("dmarc_report", facility=syslog.LOG_MAIL)
+        openlog("dmarc_report", facility=LOG_MAIL)
     except Exception:
         write_log(log, "Cannot connect to syslog")
 
@@ -92,7 +92,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                                 elif grandgrandgrandchild.tag == "spf":
                                     spf = grandgrandgrandchild.text
 
-                    syslog.syslog(TEMPLATE_SYSLOG.substitute(name_org=name_org, id_report=id_report, date_begin=date_begin, date_end=date_end, domain=domain, ip_source=ip_source, count=count, disposition=disposition, dkim=dkim, spf=spf))
+                    syslog(TEMPLATE_SYSLOG.substitute(name_org=name_org, id_report=id_report, date_begin=date_begin, date_end=date_end, domain=domain, ip_source=ip_source, count=count, disposition=disposition, dkim=dkim, spf=spf))
 
                     break
 

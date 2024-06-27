@@ -1,9 +1,9 @@
-# check_condition.py V1.0.3
+# check_condition.py V1.1.0
 #
 # Copyright (c) 2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import search
 
 ADDITIONAL_ARGUMENTS = ( "client_ip", "client_hostname", "sender" )
 OPTIONAL_ARGUMENTS = False
@@ -28,7 +28,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    match = re.search(r"S:<?([^>]*)>?", additional.sender)
+    match = search(r"S:<?([^>]*)>?", additional.sender)
 
     if match is None:
         write_log(log, "Invalid sender")

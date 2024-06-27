@@ -1,9 +1,9 @@
-# check_ocr.py V3.0.1
+# check_ocr.py V3.1.0
 #
-# Copyright (c) 2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2022-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, search, IGNORECASE
 from io import BytesIO
 from PIL import Image
 from pytesseract import image_to_string
@@ -28,7 +28,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         with open(input, "rb") as f:
             image = f.read()
     except Exception:
-        write_log(log, "Cannot read image '{}'".format(input))
+        write_log(log, f"Cannot read image '{input}'")
 
         return ReturnCode.ERROR
 
@@ -52,7 +52,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    set_blacklist = { re.compile(regex, re.IGNORECASE) for regex in set_blacklist }
+    set_blacklist = { compile(regex, IGNORECASE) for regex in set_blacklist }
 
     if config.regex_whitelist:
         try:
@@ -62,7 +62,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             return ReturnCode.ERROR
 
-        set_whitelist = { re.compile(regex, re.IGNORECASE) for regex in set_whitelist }
+        set_whitelist = { compile(regex, IGNORECASE) for regex in set_whitelist }
 
     try:
         text = image_to_string(image, lang="eng+deu")
@@ -75,11 +75,11 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         if text:
             if config.regex_whitelist:
                 for pattern in set_whitelist:
-                    if re.search(pattern, text) is not None:
+                    if search(pattern, text) is not None:
                         return ReturnCode.NONE
 
             for pattern in set_blacklist:
-                if re.search(pattern, text) is not None:
+                if search(pattern, text) is not None:
                     write_log(log, pattern.pattern)
 
                     return ReturnCode.DETECTED

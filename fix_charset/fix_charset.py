@@ -1,9 +1,9 @@
-# fix_charset.py V7.0.0
+# fix_charset.py V7.1.0
 #
-# Copyright (c) 2020-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import search, sub, IGNORECASE
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -35,13 +35,13 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             if charset_mime:
                 content = part.get_payload(decode=True).decode(charset_mime, errors="ignore")
 
-                match = re.search(r"<meta [^>]*charset=\"?([^;\"> ]+)", content, flags=re.IGNORECASE)
+                match = search(r"<meta [^>]*charset=\"?([^;\"> ]+)", content, flags=IGNORECASE)
 
                 if match is not None:
                     charset_meta = match.group(1).lower()
 
                     if charset_mime != charset_meta:
-                        content = re.sub(r"(<meta [^>]*charset=\"?)({})".format(charset_meta), r"\1{}".format(charset_mime), content, flags=re.IGNORECASE)
+                        content = sub(r"(<meta [^>]*charset=\"?)({})".format(charset_meta), r"\1{}".format(charset_mime), content, flags=IGNORECASE)
 
                         if HEADER_CTE in part:
                             del part[HEADER_CTE]

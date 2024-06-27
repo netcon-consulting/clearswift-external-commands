@@ -1,11 +1,11 @@
-# decrypt_pdf.py V6.0.0
+# decrypt_pdf.py V6.1.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from tempfile import NamedTemporaryFile
 from shutil import copyfile
-import fitz
+from fitz import open
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -36,9 +36,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.DETECTED
 
     try:
-        pdf_file = fitz.open(input)
+        pdf_file = open(input)
     except Exception:
-        write_log(log, "Cannot open PDF file '{}'".format(input))
+        write_log(log, f"Cannot open PDF file '{input}'")
 
         return ReturnCode.DETECTED
 
@@ -83,7 +83,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                     break
 
             if virus_found is not None:
-                write_log(log, "Virus '{}'".format(virus_found))
+                write_log(log, f"Virus '{virus_found}'")
 
                 return ReturnCode.DETECTED
 

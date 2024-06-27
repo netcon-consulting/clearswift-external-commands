@@ -1,4 +1,4 @@
-clean_mail.py V2.0.0
+clean_mail.py V2.1.0
 ====================
 
 Clean regular expressions and annotations from text and HTML mail bodies.

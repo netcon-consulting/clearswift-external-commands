@@ -1,11 +1,10 @@
-# add_tag.py V8.0.1
+# add_tag.py V8.1.0
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, search, escape
 from email.utils import parseaddr, getaddresses
-import bs4
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -44,20 +43,20 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         for header_keyword in [ "From", "Sender" ]:
             if header_keyword in email:
-                address_tag = "{} ".format(config.address_tag)
+                address_tag = f"{config.address_tag} "
 
                 try:
                     (prefix, address) = parseaddr(email[header_keyword])
                 except Exception:
-                    write_log(log, "Cannot parse {} header".format(header_keyword))
+                    write_log(log, f"Cannot parse {header_keyword} header")
 
                     return ReturnCode.DETECTED
 
                 if address and not prefix.startswith(address_tag):
                     if prefix:
-                        header = '"{} {}" <{}>'.format(config.address_tag, prefix, address)
+                        header = f'"{config.address_tag} {prefix}" <{address}>'
                     else:
-                        header = '"{} {}" <{}>'.format(config.address_tag, address, address)
+                        header = f'"{config.address_tag} {address}" <{address}>'
 
                     del email[header_keyword]
                     email[header_keyword] = header
@@ -74,14 +73,14 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                 return ReturnCode.DETECTED
 
-            pattern_domain = re.compile(r"^\S+@(\S+)")
+            pattern_domain = compile(r"^\S+@(\S+)")
 
             for header_keyword in [ "To", "Cc" ]:
                 if header_keyword in email:
                     try:
                         list_address = getaddresses(email.get_all(header_keyword))
                     except Exception:
-                        write_log(log, "Cannot parse {} header".format(header_keyword))
+                        write_log(log, f"Cannot parse '{header_keyword}' header")
 
                         return ReturnCode.DETECTED
 
@@ -91,17 +90,17 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                         for (prefix, address) in list_address:
                             if address:
-                                match = re.search(pattern_domain, address)
+                                match = search(pattern_domain, address)
 
                                 if match is not None and match.group(1).lower() not in set_domain and not prefix.startswith(address_tag):
                                     if prefix:
-                                        prefix = "{} {}".format(config.address_tag, prefix)
+                                        prefix = f"{config.address_tag} {prefix}"
                                     else:
-                                        prefix = "{} {}".format(config.address_tag, address)
+                                        prefix = f"{config.address_tag} {address}"
 
                                     header_modified = True
 
-                                header += '"{}" <{}>, '.format(prefix, address)
+                                header += f'"{prefix}" <{address}>, '
 
                         if header_modified:
                             del email[header_keyword]
@@ -114,9 +113,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         header = email["Subject"].strip()
 
-        if not header.startswith("{} ".format(config.subject_tag)):
+        if not header.startswith(f"{config.subject_tag} "):
             del email["Subject"]
-            email["Subject"] = "{} {}".format(config.subject_tag, header)
+            email["Subject"] = f"{config.subject_tag} {header}"
 
             email_modified = True
 
@@ -163,7 +162,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         if part is not None:
             (part, charset, content) = part
 
-            annotation_content = '<div id="{}">{}</div>'.format(config.html_id, annotation(config.html_tag).html)
+            annotation_content = f'<div id="{config.html_id}">{annotation(config.html_tag).html}</div>'
 
             content = annotate_html(content, annotation_content)
 
@@ -190,13 +189,13 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         if part is not None:
             (part, charset, content) = part
 
-            match = re.search(r"(^|\n)(ORGANIZER;[\S\s\r\n]*?)(\r?\n\S|$)", content)
+            match = search(r"(^|\n)(ORGANIZER;[\S\s\r\n]*?)(\r?\n\S|$)", content)
 
             if match is not None:
                 organizer = match.group(2)
                 organizer_start = match.start(2)
 
-                match = re.search(r"[;:]CN=", organizer)
+                match = search(r"[;:]CN=", organizer)
 
                 if match is not None:
                     name_start = match.start() + 4
@@ -215,9 +214,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                             else:
                                 name += char
                     else:
-                        name = re.search(r"[^:;]*", organizer[name_start:]).group(0)
+                        name = search(r"[^:;]*", organizer[name_start:]).group(0)
 
-                    if re.search(r"^{} ".format(re.escape(config.calendar_tag)), name) is None:
+                    if search(fr"^{escape(config.calendar_tag)} ", name) is None:
                         if HEADER_CTE in part:
                             del part[HEADER_CTE]
 

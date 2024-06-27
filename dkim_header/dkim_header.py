@@ -1,9 +1,9 @@
-# dkim_header.py V6.0.0
+# dkim_header.py V6.1.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import search
 
 ADDITIONAL_ARGUMENTS = ( "spamlogic", )
 OPTIONAL_ARGUMENTS = False
@@ -30,7 +30,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.DETECTED
 
-    match = re.search(r';\s?dkim="([^"]+)";', additional.spamlogic)
+    match = search(r';\s?dkim="([^"]+)";', additional.spamlogic)
 
     if match is None:
         write_log(log, "Cannot extract DKIM check result from SpamLogic info")

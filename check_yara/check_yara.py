@@ -1,9 +1,9 @@
-# check_yara.py V1.0.1
+# check_yara.py V1.1.0
 #
-# Copyright (c) 2023 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2023-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import yara
+from yara import compile
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -36,7 +36,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.ERROR
 
     try:
-        rules = yara.compile(source="\n".join(sorted(set(list_rules))))
+        rules = compile(source="\n".join(sorted(set(list_rules))))
     except Exception:
         write_log(log, "Invalid YARA rules")
 

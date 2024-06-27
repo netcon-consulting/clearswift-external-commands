@@ -1,4 +1,4 @@
-check_internal.py V7.1.1
+check_internal.py V7.2.0
 ========================
 
 Check whether sender IP is in internal networks and sender domain is internal domain.

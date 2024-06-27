@@ -1,4 +1,4 @@
-rewrite_url.py V9.0.0
+rewrite_url.py V9.1.0
 =====================
 
 Rewrite URLs in text and HTML body by resolving redirects (and optionally check if resolved URL is blacklisted) and replacing URL parts.

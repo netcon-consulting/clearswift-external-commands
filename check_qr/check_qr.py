@@ -1,9 +1,9 @@
-# check_qr.py V6.0.0
+# check_qr.py V6.1.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, finditer, IGNORECASE
 from PIL import Image
 from pyzbar.pyzbar import decode
 
@@ -26,7 +26,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     try:
         image = Image.open(input)
     except Exception:
-        write_log(log, "Cannot read image '{}'".format(input))
+        write_log(log, f"Cannot read image '{input}'")
 
         return ReturnCode.ERROR
 
@@ -37,7 +37,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         for qr_code in list_qr:
             try:
-                set_url |= set(re.finditer(PATTERN_URL, qr_code.data.decode(CHARSET_UTF8)))
+                set_url |= set(finditer(PATTERN_URL, qr_code.data.decode()))
             except Exception:
                 pass
 
@@ -50,7 +50,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                     return ReturnCode.ERROR
 
-                set_blacklist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_blacklist }
+                set_blacklist = { compile(url2regex(url), IGNORECASE) for url in set_blacklist }
             else:
                 set_blacklist = None
 
@@ -62,7 +62,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                     return ReturnCode.ERROR
 
-                set_whitelist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_whitelist }
+                set_whitelist = { compile(url2regex(url), IGNORECASE) for url in set_whitelist }
             else:
                 set_whitelist = None
 
@@ -74,9 +74,9 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                     if result is not None:
                         if result:
-                            write_log(log, "'{}' listed on '{}'".format(result[0], result[1]))
+                            write_log(log, f"'{result[0]}' listed on '{result[1]}'")
 
-                        write_log(log, "'{}' listed on '{}'".format(url, config.url_blacklist))
+                        write_log(log, f"'{url}' listed on '{config.url_blacklist}'")
 
                         return ReturnCode.DETECTED
 

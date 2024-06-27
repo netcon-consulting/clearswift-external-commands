@@ -1,9 +1,9 @@
-# remove_tag.py V7.0.1
+# remove_tag.py V7.1.0
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, search, escape, sub
 from email.utils import getaddresses
 from bs4 import BeautifulSoup
 
@@ -42,7 +42,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     if config.address_tag:
         # remove address tag
 
-        address_tag = "{} ".format(config.address_tag)
+        address_tag = f"{config.address_tag} "
 
         length_tag = len(address_tag)
 
@@ -51,7 +51,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 try:
                     list_address = getaddresses(email.get_all(header_keyword))
                 except Exception:
-                    write_log(log, "Cannot parse {} header".format(header_keyword))
+                    write_log(log, f"Cannot parse '{header_keyword}' header")
 
                     return ReturnCode.DETECTED
 
@@ -66,7 +66,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                                 header_modified = True
 
-                            header += '"{}" <{}>, '.format(prefix, address)
+                            header += f'"{prefix}" <{address}>, '
 
                     if header_modified:
                         del email[header_keyword]
@@ -79,7 +79,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         header = email.get("Subject").strip()
 
-        match = re.search(r"{} ".format(re.escape(config.subject_tag)), header)
+        match = search(fr"{escape(config.subject_tag)} ", header)
 
         if match is not None:
             del email["Subject"]
@@ -108,12 +108,12 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 while not split_tag[-1]:
                     del split_tag[-1]
 
-                pattern_tag = re.compile("\\n".join([ r"(>+ )*" + re.escape(item) for item in split_tag ]) + r"\n")
+                pattern_tag = compile("\\n".join([ r"(>+ )*" + escape(item) for item in split_tag ]) + r"\n")
 
-                match = re.search(pattern_tag, content)
+                match = search(pattern_tag, content)
 
                 if match is not None:
-                    content = re.sub(pattern_tag, "", content)
+                    content = sub(pattern_tag, "", content)
 
                     body_modified = True
 
@@ -147,7 +147,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             soup = BeautifulSoup(content, features="html5lib")
 
-            list_tag = soup.find_all("div", id=re.compile(r".*{}.*".format(re.escape(config.html_id))))
+            list_tag = soup.find_all("div", id=compile(fr".*{escape(config.html_id)}.*"))
 
             if list_tag:
                 for tag in list_tag:
@@ -188,13 +188,13 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         if part is not None:
             (part, charset, content) = part
 
-            match = re.search(r"(^|\n)(ORGANIZER;[\S\s\r\n]*?)(\r?\n\S|$)", content)
+            match = search(r"(^|\n)(ORGANIZER;[\S\s\r\n]*?)(\r?\n\S|$)", content)
 
             if match is not None:
                 organizer = match.group(2)
                 organizer_start = match.start(2)
 
-                match = re.search(r"[;:]CN=", organizer)
+                match = search(r"[;:]CN=", organizer)
 
                 if match is not None:
                     name_start = match.start() + 4
@@ -215,12 +215,12 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                         name_end = name_start + index - 1
                     else:
-                        match = re.search(r"[^:;]*", organizer[name_start:])
+                        match = search(r"[^:;]*", organizer[name_start:])
 
                         name = match.group(0)
                         name_end = name_start + match.end(0)
 
-                    match = re.search(r"^{} ".format(re.escape(config.calendar_tag)), name)
+                    match = search(fr"^{escape(config.calendar_tag)} ", name)
 
                     if match is not None:
                         if HEADER_CTE in part:

@@ -1,9 +1,9 @@
-# rewrite_url.py V9.0.0
+# rewrite_url.py V9.1.0
 #
 # Copyright (c) 2022-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, search, finditer, sub, IGNORECASE
 from urllib.request import urlopen, Request
 from urllib.parse import quote
 from socket import timeout
@@ -15,9 +15,7 @@ CONFIG_PARAMETERS = ( "exception_list", "redirect_list", "timeout", "check_redir
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.66 Safari/537.36"
 
-PATTERN_STRIP = re.compile(r"^https?://(\S+)$", re.IGNORECASE)
-
-TEMPLATE_TOKEN = "${}"
+PATTERN_STRIP = compile(r"^https?://(\S+)$", IGNORECASE)
 
 def resolve_redirect(url, request_timeout):
     """
@@ -30,9 +28,9 @@ def resolve_redirect(url, request_timeout):
     try:
         return urlopen(Request(url, headers={ "User-Agent": USER_AGENT }), timeout=request_timeout).url
     except timeout:
-        raise Exception("Timeout redirect '{}'".format(url))
+        raise Exception(f"Timeout redirect '{url}'")
     except Exception:
-        raise Exception("Invalid redirect '{}'".format(url))
+        raise Exception(f"Invalid redirect '{url}'")
 
 def check_blacklisted(url, set_whitelist, set_blacklist, name_blacklist):
     """
@@ -47,9 +45,9 @@ def check_blacklisted(url, set_whitelist, set_blacklist, name_blacklist):
 
     if result is not None:
         if result:
-            raise Exception("'{}' listed on '{}'".format(result[0], result[1]))
+            raise Exception(f"'{result[0]}' listed on '{result[1]}'")
 
-        raise Exception("'{}' listed on '{}'".format(url, name_blacklist))
+        raise Exception(f"'{url}' listed on '{name_blacklist}'")
 
 def modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist, set_checked, name_blacklist, dict_replace):
     """
@@ -68,7 +66,7 @@ def modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist,
     """
     if set_redirect is not None:
         for pattern in set_redirect:
-            if re.search(pattern, url) is not None:
+            if search(pattern, url) is not None:
                 url_redirect = resolve_redirect(url, request_timeout)
 
                 if url_redirect != url:
@@ -83,7 +81,7 @@ def modify_url(url, set_redirect, request_timeout, set_whitelist, set_blacklist,
 
     if dict_replace is not None:
         for (pattern, replace) in dict_replace.items():
-            url_replace = re.sub(pattern, replace, url)
+            url_replace = sub(pattern, replace, url)
 
             if url_replace != url:
                 url = url_replace
@@ -110,9 +108,9 @@ def modify_text(content, set_exception, dict_modified, set_redirect, request_tim
     """
     dict_url = dict()
 
-    for url in set(re.findall(PATTERN_URL, content)):
+    for url in set(finditer(PATTERN_URL, content)):
         for pattern in set_exception:
-            if re.search(pattern, url) is not None:
+            if search(pattern, url) is not None:
                 break
         else:
             if url in dict_modified:
@@ -128,7 +126,7 @@ def modify_text(content, set_exception, dict_modified, set_redirect, request_tim
     if dict_url:
         index_shift = 0
 
-        for match in re.finditer(PATTERN_URL, content):
+        for match in finditer(PATTERN_URL, content):
             url = match.group()
 
             if url in dict_url:
@@ -163,9 +161,9 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
     content_modified = False
 
-    for url in { a["href"] for a in soup.findAll("a", href=re.compile(r"^(?!mailto:).+", re.IGNORECASE)) }:
+    for url in { a["href"] for a in soup.findAll("a", href=compile(r"^(?!mailto:).+", IGNORECASE)) }:
         for pattern in set_exception:
-            if re.search(pattern, url) is not None:
+            if search(pattern, url) is not None:
                 break
         else:
             modified = False
@@ -183,7 +181,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
                     modified = True
 
             if modified:
-                match = re.search(PATTERN_STRIP, url)
+                match = search(PATTERN_STRIP, url)
 
                 if match is None:
                     url_strip = None
@@ -214,9 +212,9 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
     dict_url = dict()
 
-    for url in set(re.findall(PATTERN_URL, extract_text(content))):
+    for url in set(finditer(PATTERN_URL, extract_text(content))):
         for pattern in set_exception:
-            if re.search(pattern, url) is not None:
+            if search(pattern, url) is not None:
                 break
         else:
             if url in dict_modified:
@@ -235,7 +233,7 @@ def modify_html(content, charset, set_exception, dict_modified, set_redirect, re
 
             index_shift = 0
 
-            for match in re.finditer(PATTERN_URL, text):
+            for match in finditer(PATTERN_URL, text):
                 url = match.group()
 
                 if url in dict_url:
@@ -289,7 +287,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             return ReturnCode.ERROR
 
-        set_exception = { re.compile(url2regex(url), re.IGNORECASE) for url in set_exception }
+        set_exception = { compile(url2regex(url), IGNORECASE) for url in set_exception }
     else:
         set_exception = set()
 
@@ -308,7 +306,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
             return ReturnCode.DETECTED
 
-        set_redirect = { re.compile(url2regex(url), re.IGNORECASE) for url in set_redirect }
+        set_redirect = { compile(url2regex(url), IGNORECASE) for url in set_redirect }
 
         if config.check_redirect:
             if config.url_blacklist:
@@ -319,7 +317,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                     return ReturnCode.ERROR
 
-                set_blacklist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_blacklist }
+                set_blacklist = { compile(url2regex(url), IGNORECASE) for url in set_blacklist }
             else:
                 set_blacklist = None
 
@@ -331,7 +329,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
                     return ReturnCode.ERROR
 
-                set_whitelist = { re.compile(url2regex(url), re.IGNORECASE) for url in set_whitelist }
+                set_whitelist = { compile(url2regex(url), IGNORECASE) for url in set_whitelist }
             else:
                 set_whitelist = None
 
@@ -360,7 +358,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             return ReturnCode.DETECTED
 
         try:
-            dict_replace = { re.compile(substitution.split("\n")[0]): substitution.split("\n")[1] for substitution in set_substitution }
+            dict_replace = { compile(substitution.split("\n")[0]): substitution.split("\n")[1] for substitution in set_substitution }
         except Exception:
             write_log(log, "Invalid substitution list")
 
@@ -382,7 +380,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             tokens_missing = set_token - optional.keys()
 
             if tokens_missing:
-                write_log(log, "Missing optional arguments for tokens {}".format(str(tokens_missing)[1:-1]))
+                write_log(log, f"Missing optional arguments for tokens {str(tokens_missing)[1:-1]}")
 
                 return ReturnCode.DETECTED
 
@@ -392,7 +390,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 modified = False
 
                 for (token, value) in dict_token.items():
-                    token = TEMPLATE_TOKEN.format(token)
+                    token = f"${token}"
 
                     if token in replace:
                         replace = replace.replace(token, quote(value))

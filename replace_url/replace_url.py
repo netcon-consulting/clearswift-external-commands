@@ -1,9 +1,9 @@
-# replace_url.py V9.0.0
+# replace_url.py V9.1.0
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, search, finditer, IGNORECASE
 from bs4 import BeautifulSoup
 
 ADDITIONAL_ARGUMENTS = ( )
@@ -53,7 +53,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         if part_text is not None and part_html is not None:
             break
 
-    set_pattern = { re.compile(keyword, re.IGNORECASE) for keyword in set_keyword }
+    set_pattern = { compile(keyword, IGNORECASE) for keyword in set_keyword }
 
     keyword_found = False
 
@@ -61,7 +61,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         content_text = part_text.get_payload(decode=True).decode("utf-8", errors="ignore")
 
         for pattern in set_pattern:
-            match = re.search(pattern, content_text)
+            match = search(pattern, content_text)
 
             if match:
                 keyword_found = True
@@ -75,7 +75,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
             text_html = extract_text(content_html)
 
             for pattern in set_pattern:
-                match = re.search(pattern, text_html)
+                match = search(pattern, text_html)
 
                 if match:
                     keyword_found = True
@@ -84,7 +84,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     if keyword_found:
         if part_text is not None:
-            for url in re.findall(PATTERN_URL, content_text):
+            for url in finditer(PATTERN_URL, content_text):
                 content_text = content_text.replace(url, config.url_replacement)
 
             part_text.set_payload(content_text)

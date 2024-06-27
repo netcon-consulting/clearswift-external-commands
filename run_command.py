@@ -1,14 +1,14 @@
-# run_command.py V5.0.0
+# run_command.py V5.1.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import enum
-import sys
-import re
-import toml
 from argparse import ArgumentParser
+from enum import unique, IntEnum
+from sys import exit
+from re import compile, search, escape
 from xml.sax import make_parser, handler, SAXException
+from toml import loads
 
 DESCRIPTION = "run external command"
 
@@ -16,10 +16,10 @@ LAST_CONFIG = "/var/cs-gateway/deployments/lastAppliedConfiguration.xml"
 
 DEFAULT_LIBRARY = "External command library"
 
-PATTERN_ARGUMENT = re.compile(r"^([^=]+)=(.*)")
+PATTERN_ARGUMENT = compile(r"^([^=]+)=(.*)")
 
-@enum.unique
-class ReturnCode(enum.IntEnum):
+@unique
+class ReturnCode(IntEnum):
     """
     Return codes.
 
@@ -57,8 +57,8 @@ class HandlerBase(handler.ContentHandler):
         self.tag_table = tag_table
         self.tag_list = tag_list
         self.tag_item = tag_item
-        self.pattern_list = re.compile(regex_list)
-        self.pattern_item = re.compile(regex_item)
+        self.pattern_list = compile(regex_list)
+        self.pattern_item = compile(regex_item)
         self.list_itemlist = list()
         self.name_list = None
         self.list_item = None
@@ -94,13 +94,13 @@ class HandlerAttribute(HandlerBase):
         if name == self.tag_list and "name" in attrs:
             name_list = attrs["name"]
 
-            if re.search(self.pattern_list, name_list):
+            if search(self.pattern_list, name_list):
                 self.name_list = name_list
                 self.list_item = list()
         elif self.name_list is not None and name == self.tag_item and self.tag_attribute in attrs:
             item = attrs[self.tag_attribute]
 
-            if re.search(self.pattern_item, item):
+            if search(self.pattern_item, item):
                 self.list_item.append(item)
 
     def endElement(self, name):
@@ -123,7 +123,7 @@ def write_log(path_log, message):
     LOG_SUFFIX = "<<<<"
 
     with open(path_log, "a") as file_log:
-        file_log.write("{}{}{}\n".format(LOG_PREFIX, message, LOG_SUFFIX))
+        file_log.write(f"{LOG_PREFIX}{message}{LOG_SUFFIX}\n")
 
 def extract_config(config, config_parameters):
     """
@@ -145,7 +145,7 @@ def extract_config(config, config_parameters):
     parameters_missing = config_parameters - config.keys()
 
     if parameters_missing:
-        raise Exception("Missing parameters {}".format(str(parameters_missing)[1:-1]))
+        raise Exception(f"Missing parameters {str(parameters_missing)[1:-1]}")
 
     TupleConfig = namedtuple("TupleConfig", config_parameters)
 
@@ -158,20 +158,20 @@ def extract_argument(argument):
     :type argument: str
     :rtype: tuple
     """
-    match = re.search(PATTERN_ARGUMENT, argument)
+    match = search(PATTERN_ARGUMENT, argument)
 
     if match is None:
-        raise Exception("Invalid argument '{}'".format(argument))
+        raise Exception(f"Invalid argument '{argument}'")
 
     argument_key = match.group(1)
 
     if not argument_key:
-        raise Exception("Argument key missing in '{}'".format(argument))
+        raise Exception(f"Argument key missing in '{argument}'")
 
     argument_value = match.group(2)
 
     if not argument_value:
-        raise Exception("Argument value missing in '{}'".format(argument))
+        raise Exception(f"Argument value missing in '{argument}'")
 
     return ( argument_key, argument_value )
 
@@ -196,7 +196,7 @@ def extract_additional(additional, additional_arguments):
     arguments_missing = additional_arguments - arguments_defined.keys()
 
     if arguments_missing:
-        raise Exception("Missing additional arguments {}".format(str(arguments_missing)[1:-1]))
+        raise Exception(f"Missing additional arguments {str(arguments_missing)[1:-1]}")
 
     TupleAdditional = namedtuple("TupleAdditional", additional_arguments)
 
@@ -225,9 +225,9 @@ def main(args):
         return ReturnCode.NONE
 
     if args.config is None:
-        pattern_list = r"^({}|{})$".format(re.escape(args.library), re.escape(args.command))
+        pattern_list = fr"^({escape(args.library)}|{escape(args.command)})$"
     else:
-        pattern_list = r"^({}|{}|{})$".format(re.escape(args.library), re.escape(args.command), re.escape(args.config))
+        pattern_list = fr"^({escape(args.library)}|{escape(args.command)}|{escape(args.config)})$"
 
     handler_list = HandlerAttribute("text", "TextualAnalysisCollection", "TextualAnalysis", "Phrase", pattern_list, r".*")
 
@@ -316,10 +316,11 @@ def main(args):
 
 if __name__ == "__main__":
     parser = ArgumentParser(description=DESCRIPTION)
+
     parser.add_argument("input", metavar="INPUT", type=str, help="input file")
     parser.add_argument("log", metavar="LOG", type=str, help="log file")
     parser.add_argument("command", metavar="COMMAND", type=str, help="name of external command lexical list")
-    parser.add_argument("-l", "--library", metavar="LIBRARY", type=str, default=DEFAULT_LIBRARY, help="name of external command library lexical list (default={})".format(DEFAULT_LIBRARY))
+    parser.add_argument("-l", "--library", metavar="LIBRARY", type=str, default=DEFAULT_LIBRARY, help=f"name of external command library lexical list (default={DEFAULT_LIBRARY})")
     parser.add_argument("-c", "--config", metavar="CONFIG", type=str, default=None, help="name of external command config lexical list (default=None)")
     parser.add_argument("-i", "--id", metavar="ID", type=str, default=None, help="item ID (default=None)")
     parser.add_argument("-a", "--additional", metavar="ADDITIONAL", action="append", type=str, help="additional arguments in 'key=value' format (default=None)")
@@ -330,7 +331,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        sys.exit(main(args))
+        exit(main(args))
     except Exception:
         # should never get here; exceptions must be handled in main()
-        sys.exit(ReturnCode.EXCEPTION)
+        exit(ReturnCode.EXCEPTION)

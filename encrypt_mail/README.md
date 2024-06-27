@@ -1,4 +1,4 @@
-encrypt_mail.py V6.1.2
+encrypt_mail.py V6.2.0
 ======================
 
 Zip-encrypt email if trigger keyword present in subject header and send it to recipients and generated password to sender.

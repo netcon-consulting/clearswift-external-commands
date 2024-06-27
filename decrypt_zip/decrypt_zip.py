@@ -1,12 +1,12 @@
-# decrypt_zip.py V7.0.0
+# decrypt_zip.py V7.1.0
 #
-# Copyright (c) 2021-2022 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
+# Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from pathlib import Path
 from io import BytesIO
 from tempfile import TemporaryDirectory
-import pyzipper
+from pyzipper import AESZipFile, ZIP_LZMA, WZ_AES
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -52,7 +52,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     if config.remove_encryption:
         buffer = BytesIO()
 
-        zf_decrypted = pyzipper.AESZipFile(buffer, "w", compression=pyzipper.ZIP_LZMA)
+        zf_decrypted = AESZipFile(buffer, "w", compression=ZIP_LZMA)
 
     with TemporaryDirectory(dir="/tmp") as path_tmpdir:
         path_tmpdir = Path(path_tmpdir)
@@ -60,10 +60,10 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         if config.scan_avira:
             path_tmpdir.chmod(0o755)
 
-        with pyzipper.AESZipFile(input, "r", compression=pyzipper.ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
+        with AESZipFile(input, "r", compression=ZIP_LZMA, encryption=WZ_AES) as zf:
             for password in set_password:
                 try:
-                    zf.pwd = password.encode(CHARSET_UTF8)
+                    zf.pwd = password.encode()
 
                     for file_name in zf.namelist():
                         path_file = path_tmpdir.joinpath(file_name)
@@ -74,7 +74,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                             with open(path_file, "wb") as f:
                                 f.write(data)
                         except Exception:
-                            write_log(log, "Cannot extract file '{}'".format(file_name))
+                            write_log(log, f"Cannot extract file '{file_name}'")
 
                             return ReturnCode.DETECTED
 
@@ -92,7 +92,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                                 break
 
                         if virus_found is not None:
-                            write_log(log, "Virus '{}'".format(virus_found))
+                            write_log(log, f"Virus '{virus_found}'")
 
                             return ReturnCode.DETECTED
 

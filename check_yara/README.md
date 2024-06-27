@@ -1,4 +1,4 @@
-check_yara.py V1.0.1
+check_yara.py V1.1.0
 ====================
 
 Check raw email data (or attachments) against YARA rules.

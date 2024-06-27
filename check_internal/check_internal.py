@@ -1,9 +1,9 @@
-# check_internal.py V7.1.1
+# check_internal.py V7.2.0
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import search
 from email.utils import parseaddr
 from ipaddress import IPv4Address, IPv4Network
 
@@ -42,7 +42,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.ERROR
 
-    sender_ip = re.search(r"\[([0-9.]+)\]", header_received)
+    sender_ip = search(r"\[([0-9.]+)\]", header_received)
 
     if not sender_ip:
         write_log(log, "Cannot find sender IP")
@@ -62,7 +62,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         try:
             ipv4_network = IPv4Network(network)
         except Exception:
-            write_log(log, "Invalid CIDR '{}'".format(network))
+            write_log(log, f"Invalid CIDR '{network}'")
 
             return ReturnCode.ERROR
 
@@ -86,7 +86,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
     try:
         sender_address = parseaddr(header_from)[1]
     except Exception:
-        write_log(log, "Cannot parse From header".format(header_keyword))
+        write_log(log, "Cannot parse From header")
 
         return ReturnCode.ERROR
 

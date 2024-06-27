@@ -1,4 +1,4 @@
-check_ocr.py V3.0.1
+check_ocr.py V3.1.0
 ===================
 
 Check text in pictures against regular expression blacklist.

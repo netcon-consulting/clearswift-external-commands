@@ -1,9 +1,9 @@
-# clean_mail.py V2.0.0
+# clean_mail.py V2.1.0
 #
 # Copyright (c) 2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
-import re
+from re import compile, search, escape, finditer, sub
 from email.message import EmailMessage
 from bs4 import BeautifulSoup
 
@@ -13,7 +13,7 @@ CONFIG_PARAMETERS = ( "regex_list", "annotation_list", "clean_attachment" )
 
 RECURSION_LIMIT = 5000
 
-PATTERN_ID = re.compile(r"^<\S+[^>]*[ \t\n]+id=\"(\S+)\"[ \t\n>]")
+PATTERN_ID = compile(r"^<\S+[^>]*[ \t\n]+id=\"(\S+)\"[ \t\n>]")
 
 def clean_mail(email, list_pattern, list_annotation):
     """
@@ -41,21 +41,21 @@ def clean_mail(email, list_pattern, list_annotation):
                 while not split_annotation[-1]:
                     del split_annotation[-1]
 
-                pattern_annotation = re.compile("\\n".join([ r"(>+ )*" + re.escape(item) for item in split_annotation ]) + r"\n")
+                pattern_annotation = compile(r"\n".join([ r"(>+ )*" + escape(item) for item in split_annotation ]) + r"\n")
 
-                match = re.search(pattern_annotation, content)
+                match = search(pattern_annotation, content)
 
                 if match is not None:
-                    content = re.sub(pattern_annotation, "", content)
+                    content = sub(pattern_annotation, "", content)
 
                     body_modified = True
 
         if list_pattern is not None:
             for pattern in list_pattern:
-                match = re.search(pattern, content)
+                match = search(pattern, content)
 
                 if match is not None:
-                    content = re.sub(pattern, "", content)
+                    content = sub(pattern, "", content)
 
                     body_modified = True
 
@@ -78,10 +78,10 @@ def clean_mail(email, list_pattern, list_annotation):
         soup = BeautifulSoup(content, features="html5lib")
 
         for annotation in list_annotation:
-            match = re.search(PATTERN_ID, annotation.html.strip())
+            match = search(PATTERN_ID, annotation.html.strip())
 
             if match is not None:
-                list_tag = soup.find_all("div", id=re.compile(r".*{}.*".format(re.escape(match.group(1)))))
+                list_tag = soup.find_all("div", id=compile(fr".*{escape(match.group(1))}.*"))
 
                 if list_tag:
                     for tag in list_tag:
@@ -96,7 +96,7 @@ def clean_mail(email, list_pattern, list_annotation):
 
                     index_shift = 0
 
-                    for match in re.finditer(pattern, text):
+                    for match in finditer(pattern, text):
                         text = text[:match.start() + index_shift] + text[match.end() + index_shift:]
 
                         index_shift -= match.end() - match.start()
@@ -146,7 +146,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
     if config.regex_list:
         try:
-            list_pattern = [ re.compile(regex) for regex in lexical_list(config.regex_list) ]
+            list_pattern = [ compile(regex) for regex in lexical_list(config.regex_list) ]
         except Exception as ex:
             write_log(log, ex)
 

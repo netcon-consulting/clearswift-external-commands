@@ -1,4 +1,4 @@
-# command_library.py V11.1.1
+# command_library.py V11.2.0
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,20 +7,19 @@
 Collection of functions for Clearswift external commands.
 """
 
-import enum
 from collections import namedtuple
 from email import message_from_binary_file, errors
 from email.policy import EmailPolicy
 from email.headerregistry import HeaderRegistry, BaseHeader, MessageIDHeader
-from email._header_value_parser import _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, get_dot_atom_text, get_word, get_cfws, get_no_fold_literal, get_domain, get_unstructured, TokenList, Terminal, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, MessageID, MsgID, ObsLocalPart, InvalidMessageID, CFWS_LEADER, PHRASE_ENDS, DOT, SPECIALS
+from email._header_value_parser import _steal_trailing_WSP_if_exists, _fold_as_ew, quote_string, get_dot_atom_text, get_word, get_cfws, get_no_fold_literal, get_domain, get_unstructured, TokenList, Terminal, HeaderLabel, ValueTerminal, CFWSList, WhiteSpaceTerminal, MessageID, MsgID, ObsLocalPart, InvalidMessageID, CFWS_LEADER, PHRASE_ENDS, DOT, SPECIALS, WSP
 from email.utils import _has_surrogates
 from xml.sax import make_parser, handler
 from io import BytesIO
-import re
+from re import compile, search, escape, IGNORECASE
 from subprocess import run, PIPE, DEVNULL
 from socket import socket, AF_INET, SOCK_STREAM
 from urllib.parse import quote, unquote
-import pyzipper
+from pyzipper import AESZipFile, ZIP_LZMA
 from lxml.html.html5parser import etree
 from dns.resolver import resolve
 
@@ -30,16 +29,16 @@ HEADER_CTE = "Content-Transfer-Encoding"
 
 BUFFER_TCP = 4096 # in bytes
 
-PATTERN_URL = re.compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._-]+[A-Za-z0-9](?:/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]*[A-Za-z0-9_~/#[\]@$&()*+%=-])?)", re.IGNORECASE)
-PATTERN_PROTOCOL = re.compile(r"^(https?://)(\S+)$", re.IGNORECASE)
-PATTERN_DOMAIN = re.compile(r"^(?:https?://)?([^/]+)", re.IGNORECASE)
+PATTERN_URL = compile(r"((?:https?://|www\.|ftp\.)[A-Za-z0-9._-]+[A-Za-z0-9](?:/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;%=-]*[A-Za-z0-9_~/#[\]@$&()*+%=-])?)", IGNORECASE)
+PATTERN_PROTOCOL = compile(r"^(https?://)(\S+)$", IGNORECASE)
+PATTERN_DOMAIN = compile(r"^(?:https?://)?([^/]+)", IGNORECASE)
 
 TupleReputation = namedtuple("TupleReputation", "query_domain record_type match")
 
 LIST_REPUTATION = [
-    TupleReputation(query_domain="dnsbl7.mailshell.net", record_type="A", match=re.compile(r"^((25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\.){3}(((?!100|101)[0-9])+)$")),
-    TupleReputation(query_domain="multi.surbl.org", record_type="TXT", match=re.compile(r"^(((?!Query Refused).)+)$")),
-    TupleReputation(query_domain="multi.uribl.com", record_type="TXT", match=re.compile(r"^(((?!Query Refused).)+)$")),
+    TupleReputation(query_domain="dnsbl7.mailshell.net", record_type="A", match=compile(r"^((25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\.){3}(((?!100|101)[0-9])+)$")),
+    TupleReputation(query_domain="multi.surbl.org", record_type="TXT", match=compile(r"^(((?!Query Refused).)+)$")),
+    TupleReputation(query_domain="multi.uribl.com", record_type="TXT", match=compile(r"^(((?!Query Refused).)+)$")),
 ]
 
 CHARSET_EQUIVALENT = {
@@ -94,7 +93,7 @@ class HandlerValue(HandlerBase):
         elif name == self.tag_list and "name" in attrs:
             name_list = attrs["name"]
 
-            if re.search(self.pattern_list, name_list):
+            if search(self.pattern_list, name_list):
                 self.name_list = name_list
 
                 self.list_item = list()
@@ -104,7 +103,7 @@ class HandlerValue(HandlerBase):
             self.item += content
 
     def endElement(self, name):
-        if self.name_list is not None and name == self.tag_item and re.search(self.pattern_item, self.item):
+        if self.name_list is not None and name == self.tag_item and search(self.pattern_item, self.item):
                 self.list_item.append(self.item)
 
                 self.item = None
@@ -124,7 +123,7 @@ class HandlerAnnotation(handler.ContentHandler):
         """
         :type regex_item: str
         """
-        self.pattern_annotation = re.compile(regex_annotation)
+        self.pattern_annotation = compile(regex_annotation)
         self.list_annotation = list()
         self.name_annotation = None
         self.text = None
@@ -140,7 +139,7 @@ class HandlerAnnotation(handler.ContentHandler):
         elif name == "Annotation" and "name" in attrs:
             name_annotation = attrs["name"]
 
-            if re.search(self.pattern_annotation, name_annotation):
+            if search(self.pattern_annotation, name_annotation):
                 self.name_annotation = name_annotation
 
     def characters(self, content):
@@ -189,7 +188,11 @@ class Header(TokenList):
 
         lines = [""]
 
+        leading_whitespace = ""
+
         last_ew = None
+
+        last_charset = None
 
         wrap_as_ew_blocked = 0
 
@@ -214,6 +217,7 @@ class Header(TokenList):
 
             try:
                 tstr.encode(encoding)
+
                 charset = encoding
             except UnicodeEncodeError:
                 if any(isinstance(x, errors.UndecodableBytesDefect) for x in part.all_defects):
@@ -249,23 +253,50 @@ class Header(TokenList):
 
                 if not hasattr(part, "encode"):
                     parts = list(part) + parts
+
+                    want_encoding = False
+
+                    continue
+                elif part.as_ew_allowed:
+                    if (last_ew is not None and charset != last_charset and (last_charset == "unknown-8bit" or last_charset == "utf-8" and charset != "us-ascii")):
+                        last_ew = None
+
+                    last_ew = _fold_as_ew(tstr, lines, maxlen, last_ew, part.ew_combine_allowed, charset, leading_whitespace)
+
+                    leading_whitespace = ""
+
+                    last_charset = charset
+
+                    want_encoding = False
+
+                    continue
                 else:
-                    last_ew = _fold_as_ew(tstr, lines, maxlen, last_ew, part.ew_combine_allowed, charset)
+                    last_ew = None
 
-                want_encoding = False
-
-                continue
+                    want_encoding = False
 
             if len(tstr) <= maxlen - len(lines[-1]):
                 lines[-1] += tstr
 
                 continue
 
+            leading_whitespace = ""
+
             if (part.syntactic_break and len(tstr) + 1 <= maxlen):
                 newline = _steal_trailing_WSP_if_exists(lines)
 
                 if newline or part.startswith_fws():
                     lines.append(newline + tstr)
+
+                    whitespace_accumulator = []
+
+                    for char in lines[-1]:
+                        if char not in WSP:
+                            break
+
+                        whitespace_accumulator.append(char)
+
+                    leading_whitespace = "".join(whitespace_accumulator)
 
                     last_ew = None
 
@@ -341,7 +372,7 @@ def fold_mime_parameters(part, lines, maxlen, encoding, disable_splitting):
             tstr = "{}={}".format(name, quote_string(value))
 
         if len(lines[-1]) + len(tstr) + 1 < maxlen:
-            lines[-1] = lines[-1] + ' ' + tstr
+            lines[-1] = lines[-1] + " " + tstr
 
             continue
         elif disable_splitting or len(tstr) + 2 <= maxlen:
@@ -433,10 +464,13 @@ def get_obs_local_part(value):
 
         obs_local_part.append(token)
 
-    if (obs_local_part[0].token_type == "dot" or obs_local_part[0].token_type == "cfws" and obs_local_part[1].token_type == "dot"):
+    if not obs_local_part:
+        raise errors.HeaderParseError("expected obs-local-part but found '{}'".format(value))
+
+    if (obs_local_part[0].token_type == "dot" or obs_local_part[0].token_type == "cfws" and len(obs_local_part) > 1 and obs_local_part[1].token_type == "dot"):
         obs_local_part.defects.append(errors.InvalidHeaderDefect("Invalid leading '.' in local part"))
 
-    if (obs_local_part[-1].token_type == "dot" or obs_local_part[-1].token_type == "cfws" and obs_local_part[-2].token_type == "dot"):
+    if (obs_local_part[-1].token_type == "dot" or obs_local_part[-1].token_type == "cfws" and len(obs_local_part) > 1 and obs_local_part[-2].token_type == "dot"):
         obs_local_part.defects.append(errors.InvalidHeaderDefect("Invalid trailing '.' in local part"))
 
     if obs_local_part.defects:
@@ -499,7 +533,7 @@ def get_msg_id(value):
     except errors.HeaderParseError:
         try:
             (token, value) = get_no_fold_literal(value)
-        except errors.HeaderParseError as e:
+        except errors.HeaderParseError:
             try:
                 (token, value) = get_domain(value)
 
@@ -579,12 +613,12 @@ def address_list(name_list):
     :type name_list: str
     :rtype: list
     """
-    extracted_list = get_list(LIST_ADDRESS, "^{}$".format(name_list), ".*")
+    extracted_list = get_list(LIST_ADDRESS, f"^{name_list}$", ".*")
 
     if extracted_list:
         return extracted_list[0][1]
     else:
-        raise Exception("Address list '{}' does not exist".format(name_list))
+        raise Exception(f"Address list '{name_list}' does not exist")
 
 def lexical_list(name_list):
     """
@@ -593,12 +627,12 @@ def lexical_list(name_list):
     :type name_list: str
     :rtype: list
     """
-    extracted_list = get_list(LIST_LEXICAL, "^{}$".format(name_list), ".*")
+    extracted_list = get_list(LIST_LEXICAL, f"^{name_list}$", ".*")
 
     if extracted_list:
         return extracted_list[0][1]
     else:
-        raise Exception("Lexical list '{}' does not exist".format(name_list))
+        raise Exception(f"Lexical list '{name_list}' does not exist")
 
 def url_list(name_list):
     """
@@ -607,12 +641,12 @@ def url_list(name_list):
     :type name_list: str
     :rtype: list
     """
-    extracted_list = get_list(LIST_URL, "^{}$".format(name_list), ".*")
+    extracted_list = get_list(LIST_URL, f"^{name_list}$", ".*")
 
     if extracted_list:
         return extracted_list[0][1]
     else:
-        raise Exception("URL list '{}' does not exist".format(name_list))
+        raise Exception(f"URL list '{name_list}' does not exist")
 
 def get_annotation(regex_annotation, last_config=LAST_CONFIG):
     """
@@ -641,12 +675,12 @@ def annotation(name_annotation):
     :type name_annotation: str
     :rtype: TupleAnnotation
     """
-    extracted_annotation = get_annotation("^{}$".format(name_annotation))
+    extracted_annotation = get_annotation(f"^{name_annotation}$")
 
     if extracted_annotation:
         return extracted_annotation[0]
     else:
-        raise Exception("Annotation '{}' does not exist".format(name_annotation))
+        raise Exception(f"Annotation '{name_annotation}' does not exist")
 
 def read_text(path_file, ignore_errors=False):
     """
@@ -664,11 +698,11 @@ def read_text(path_file, ignore_errors=False):
             with open(path_file) as f:
                 content = f.read()
     except FileNotFoundError:
-        raise Exception("'{}' does not exist".format(path_file))
+        raise Exception(f"'{path_file}' does not exist")
     except PermissionError:
-        raise Exception("Cannot open '{}'".format(path_file))
+        raise Exception(f"Cannot open '{path_file}'")
     except UnicodeDecodeError:
-        raise Exception("'{}' not UTF-8".format(path_file))
+        raise Exception(f"'{path_file}' not UTF-8")
 
     return content
 
@@ -683,9 +717,9 @@ def read_binary(path_file):
         with open(path_file, "rb") as f:
             content = f.read()
     except FileNotFoundError:
-        raise Exception("'{}' does not exist".format(path_file))
+        raise Exception(f"'{path_file}' does not exist")
     except PermissionError:
-        raise Exception("Cannot open '{}'".format(path_file))
+        raise Exception(f"Cannot open '{path_file}'")
 
     return content
 
@@ -763,7 +797,7 @@ def write_email(email, path_email, reformat_header):
             except ValueError:
                 pass
             except Exception as ex:
-                raise Exception("Cannot add '{}' header: {}".format(key, str(ex)))
+                raise Exception(f"Cannot add '{key}' header: {ex}")
 
     try:
         email = email.as_bytes()
@@ -774,7 +808,7 @@ def write_email(email, path_email, reformat_header):
         with open(path_email, "wb") as f:
             f.write(email)
     except Exception:
-        raise Exception("Cannot write email to '{}'".format(input))
+        raise Exception(f"Cannot write email to '{path_email}'")
 
 def zip_encrypt(set_data, password):
     """
@@ -786,7 +820,7 @@ def zip_encrypt(set_data, password):
     """
     buffer = BytesIO()
 
-    with pyzipper.AESZipFile(buffer, "w", compression=pyzipper.ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
+    with AESZipFile(buffer, "w", compression=ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
         zf.pwd = password
 
         for (file_name, data) in set_data:
@@ -802,7 +836,7 @@ def unzip_decrypt(bytes_zip, password):
     :type password: str
     :rtype: set
     """
-    with pyzipper.AESZipFile(BytesIO(bytes_zip), "r", compression=pyzipper.ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
+    with AESZipFile(BytesIO(bytes_zip), "r", compression=ZIP_LZMA, encryption=pyzipper.WZ_AES) as zf:
         zf.pwd = password
 
         set_data = set()
@@ -866,7 +900,7 @@ def scan_sophos(path_file):
     except Exception:
         raise Exception("Error calling Sophos AV")
 
-    match = re.search(r"\n\tSophosConnection::recvLine returning VIRUS (\S+) {}\n".format(path_file), result.stdout)
+    match = search(fr"\n\tSophosConnection::recvLine returning VIRUS (\S+) {path_file}\n", result.stdout)
 
     if match:
         return match.group(1)
@@ -887,7 +921,7 @@ def scan_kaspersky(path_file):
     except Exception:
         raise Exception("Error calling Kaspersky AV")
 
-    match = re.search(r"\n'{}': EVENT_DETECT '([^']+)'. Detect type: ".format(path_file), result.stdout)
+    match = search(fr"\n'{path_file}': EVENT_DETECT '([^']+)'. Detect type: ", result.stdout)
 
     if match:
         return match.group(1)
@@ -902,15 +936,15 @@ def avira_set(option_key, option_value, socket_avira):
     :type option_value: str
     :type socket_avira: socket
     """
-    bytes_key = option_key.encode(CHARSET_UTF8)
-    bytes_value = option_value.encode(CHARSET_UTF8)
+    bytes_key = option_key.encode()
+    bytes_value = option_value.encode()
 
     socket_avira.send(b"SET " + bytes_key + b" " + bytes_value + b"\n")
 
     data = socket_avira.recv(BUFFER_TCP)
 
     if data != b"100 " + bytes_key + b":" + bytes_value + b"\n":
-        raise Exception("Cannot set Avira option '' to value ''".format(option_key, option_value))
+        raise Exception(f"Cannot set Avira option '{option_key}' to value '{option_value}'")
 
 def scan_avira(path_file):
     """
@@ -932,13 +966,13 @@ def scan_avira(path_file):
             avira_set("SCAN_TIMEOUT", "300", s)
             avira_set("ARCHIVE_SCAN", "1", s)
 
-            s.send(b"SCAN " + path_file.encode(CHARSET_UTF8) + b"\n")
+            s.send(b"SCAN " + path_file.encode() + b"\n")
 
             data = s.recv(BUFFER_TCP)
     except Exception:
         raise Exception("Error calling Avira AV")
 
-    match = re.search(r"^310 [^;]*?(\S+) ;", data.decode(CHARSET_UTF8))
+    match = search(r"^310 [^;]*?(\S+) ;", data.decode())
 
     if match:
         return match.group(1)
@@ -954,11 +988,11 @@ def domain_blacklisted(domain):
     """
     for reputation in LIST_REPUTATION:
         try:
-            set_result = { str(item) for item in resolve("{}.{}".format(domain, reputation.query_domain), reputation.record_type).rrset.items }
+            set_result = { str(item) for item in resolve(f"{domain}.{reputation.query_domain}", reputation.record_type).rrset.items }
         except Exception:
             set_result = set()
 
-        if len(set_result) == 1 and re.search(reputation.match, set_result.pop()):
+        if len(set_result) == 1 and search(reputation.match, set_result.pop()):
             return reputation.query_domain
 
     return None
@@ -970,7 +1004,7 @@ def url2regex(url):
     :type url: str
     :rtype: str
     """
-    match = re.search(PATTERN_PROTOCOL, url)
+    match = search(PATTERN_PROTOCOL, url)
 
     if match is None:
         protocol = r"(https?://)?"
@@ -982,9 +1016,9 @@ def url2regex(url):
     split_url = url.split("/")
 
     if len(split_url) == 2 and split_url[1] == "*":
-        return r"^{}{}/?.*$".format(protocol, re.escape(split_url[0]).replace("\\*", ".*"))
+        return fr"^{protocol}{escape(split_url[0]).replace(r"\*", r".*")}/?.*$"
     else:
-        return r"^{}{}$".format(protocol, re.escape(url).replace("\\*", ".*"))
+        return fr"^{protocol}{escape(url).replace(r"\*", r".*")}$"
 
 def extract_part(email, content_type):
     """
@@ -1004,7 +1038,7 @@ def extract_part(email, content_type):
             try:
                 content = part.get_payload(decode=True).decode(charset, errors="ignore").replace("\r", "")
             except Exception:
-                raise Exception("Cannot decode '{}' part with charset '{}'".format(content_type, charset))
+                raise Exception(f"Cannot decode '{content_type}' part with charset '{charset}'")
 
             return (part, charset, content)
 
@@ -1020,12 +1054,12 @@ def annotate_html(content, annotation, on_top=True):
     :rtype: str
     """
     if on_top:
-        match = re.search(r"<body[^>]*>", content)
+        match = search(r"<body[^>]*>", content)
 
         if match is not None:
             index = match.end()
         else:
-            match = re.search(r"<html[^>]*>", content)
+            match = search(r"<html[^>]*>", content)
 
             if match is not None:
                 index = match.end()
@@ -1053,15 +1087,15 @@ def url_blacklisted(url, set_whitelist, set_blacklist):
     """
     if set_whitelist is not None:
         for pattern in set_whitelist:
-            if re.search(pattern, url) is not None:
+            if search(pattern, url) is not None:
                 return None
 
     if set_blacklist is not None:
         for pattern in set_blacklist:
-            if re.search(pattern, url) is not None:
+            if search(pattern, url) is not None:
                 return tuple()
 
-    domain = re.search(PATTERN_DOMAIN, url).group(1).lower()
+    domain = search(PATTERN_DOMAIN, url).group(1).lower()
 
     while True:
         blacklist = domain_blacklisted(domain)
