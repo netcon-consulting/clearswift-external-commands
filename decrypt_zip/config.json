@@ -1,8 +1,5 @@
 {
     "Decrypt ZIP": {
-        "modules": [
-            "pyzipper"
-        ],
         "list_lexical": [
             "Decrypt ZIP passwords"
         ],
