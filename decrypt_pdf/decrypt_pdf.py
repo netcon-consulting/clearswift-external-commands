@@ -1,11 +1,11 @@
-# decrypt_pdf.py V6.1.0
+# decrypt_pdf.py V6.1.1
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
 from tempfile import NamedTemporaryFile
 from shutil import copyfile
-from fitz import open
+from fitz import open as fitz
 
 ADDITIONAL_ARGUMENTS = ( )
 OPTIONAL_ARGUMENTS = False
@@ -36,7 +36,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         return ReturnCode.DETECTED
 
     try:
-        pdf_file = open(input)
+        pdf_file = fitz(input)
     except Exception:
         write_log(log, f"Cannot open PDF file '{input}'")
 

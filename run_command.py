@@ -1,4 +1,4 @@
-# run_command.py V5.1.0
+# run_command.py V5.1.1
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -134,7 +134,7 @@ def extract_config(config, config_parameters):
     :rtype: TupleConfig
     """
     try:
-        config = toml.loads("\n".join(config))
+        config = loads("\n".join(config))
     except Exception:
         raise Exception("Config not valid TOML format")
 

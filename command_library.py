@@ -1,4 +1,4 @@
-# command_library.py V11.2.0
+# command_library.py V11.2.1
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -7,6 +7,7 @@
 Collection of functions for Clearswift external commands.
 """
 
+from sys import maxsize
 from collections import namedtuple
 from email import message_from_binary_file, errors
 from email.policy import EmailPolicy
@@ -179,7 +180,7 @@ class Header(TokenList):
     token_type = "header"
 
     def fold(self, *, policy):
-        maxlen = policy.max_line_length or sys.maxsize
+        maxlen = policy.max_line_length or maxsize
 
         if policy.utf8:
             encoding = "utf-8"
