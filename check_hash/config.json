@@ -1,0 +1,24 @@
+{
+    "Check hash": {
+        "list_lexical": [
+            "MD5 hashes",
+            "SHA-256 hashes"
+        ],
+        "media_types": {
+            "SMTP": [ "not_protected" ]
+        },
+        "parameters": "-i \"%ITEMID%\" -c \"Config - Check hash\" %FILENAME% %LOGNAME% \"External command - check_hash\"",
+        "responses": {
+            "NONE": "Unknown hash",
+            "DETECTED": "Malicious hash (%LOGTEXT%)",
+            "NOT_CHECKED": "Error (%LOGTEXT%)"
+        },
+        "disposal_actions": {
+            "detected": { "primary": "hold:Check hash" }
+        },
+        "config": {
+            "md5_hashes": { "type": "string", "description": "name of lexical expression list with malicious MD5 hashes (empty for no check of MD5 hash)", "value": "\"MD5 hashes\"" },
+            "sha256_hashes": { "type": "string", "description": "name of lexical expression list with malicious SHA-256 hashes (empty for no check of SHA-256 hash)", "value": "\"SHA-256 hashes\"" }
+        }
+    }
+}

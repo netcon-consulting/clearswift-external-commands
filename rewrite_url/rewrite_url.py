@@ -1,4 +1,4 @@
-# rewrite_url.py V9.1.0
+# rewrite_url.py V9.1.1
 #
 # Copyright (c) 2022-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -285,7 +285,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
         except Exception as ex:
             write_log(log, ex)
 
-            return ReturnCode.ERROR
+            return ReturnCode.DETECTED
 
         set_exception = { compile(url2regex(url), IGNORECASE) for url in set_exception }
     else:
@@ -315,7 +315,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 except Exception as ex:
                     write_log(log, ex)
 
-                    return ReturnCode.ERROR
+                    return ReturnCode.DETECTED
 
                 set_blacklist = { compile(url2regex(url), IGNORECASE) for url in set_blacklist }
             else:
@@ -327,7 +327,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
                 except Exception as ex:
                     write_log(log, ex)
 
-                    return ReturnCode.ERROR
+                    return ReturnCode.DETECTED
 
                 set_whitelist = { compile(url2regex(url), IGNORECASE) for url in set_whitelist }
             else:
