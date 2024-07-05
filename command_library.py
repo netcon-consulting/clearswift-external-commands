@@ -1,4 +1,4 @@
-# command_library.py V11.2.1
+# command_library.py V11.3.0
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -16,7 +16,7 @@ from email._header_value_parser import _steal_trailing_WSP_if_exists, _fold_as_e
 from email.utils import _has_surrogates
 from xml.sax import make_parser, handler
 from io import BytesIO
-from re import compile, search, escape, IGNORECASE
+from re import compile, search, escape, sub, IGNORECASE
 from subprocess import run, PIPE, DEVNULL
 from socket import socket, AF_INET, SOCK_STREAM
 from urllib.parse import quote, unquote
@@ -787,7 +787,7 @@ def write_email(email, path_email, reformat_header):
         list_header = list()
 
         for (key, value) in email.items():
-            list_header.append((key, str(value).replace("\n", " ").replace("\r", " ").replace("\t", " ")))
+            list_header.append((key, sub(r"[ \n\r\t]+", " ", str(value))))
 
         for key in set(email.keys()):
             del email[key]
