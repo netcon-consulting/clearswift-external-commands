@@ -1,8 +1,9 @@
-# add_tag.py V8.1.0
+# add_tag.py V8.1.1
 #
 # Copyright (c) 2021-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
 
+from sys import setrecursionlimit
 from re import compile, search, escape
 from email.utils import parseaddr, getaddresses
 
@@ -34,7 +35,7 @@ def run_command(input, log, config, additional, optional, disable_splitting, ref
 
         return ReturnCode.DETECTED
 
-    sys.setrecursionlimit(RECURSION_LIMIT)
+    setrecursionlimit(RECURSION_LIMIT)
 
     email_modified = False
 
