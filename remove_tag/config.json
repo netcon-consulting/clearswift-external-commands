@@ -1,8 +1,5 @@
 {
     "Remove tag": {
-        "modules": [
-            "beautifulsoup4"
-        ],
         "media_types": {
             "SMTP": [ "not_protected" ]
         },

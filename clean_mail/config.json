@@ -1,8 +1,5 @@
 {
     "Clean mail": {
-        "modules": [
-            "beautifulsoup4"
-        ],
         "list_lexical": [
             "Clean regex",
             "Clean annotation"

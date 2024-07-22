@@ -3,6 +3,16 @@ Clearswift external commands
 
 Collection of external commands for Clearswift SEG 5.
 
+## Dependencies
+
+* [toml](https://pypi.org/project/toml/)
+* [pyzipper](https://pypi.org/project/pyzipper/)
+* [lxml](https://pypi.org/project/lxml/)
+* [html5lib](https://pypi.org/project/html5lib/)
+* [dnspython](https://pypi.org/project/dnspython/)
+* [beautifulsoup4](https://pypi.org/project/beautifulsoup4/)
+* [faust-cchardet](https://pypi.org/project/faust-cchardet/)
+
 ## Installation
 
 Installation of external commands recommended with the install script: https://github.com/netcon-consulting/external_commands

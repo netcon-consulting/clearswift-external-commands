@@ -1,8 +1,5 @@
 {
     "Rewrite URL": {
-        "modules": [
-            "beautifulsoup4"
-        ],
         "list_url": [
             "Rewrite exceptions",
             "Redirector domains",

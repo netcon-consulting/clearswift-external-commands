@@ -1,4 +1,4 @@
-# command_library.py V11.3.1
+# command_library.py V12.0.0
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -23,6 +23,7 @@ from urllib.parse import quote, unquote
 from pyzipper import AESZipFile, ZIP_LZMA
 from lxml.html.html5parser import etree
 from dns.resolver import resolve
+from bs4 import UnicodeDammit
 
 CHARSET_UTF8 = "utf-8"
 
@@ -67,9 +68,9 @@ LIST_INFO = {
 
 TupleAnnotation = namedtuple("TupleAnnotation", "text html")
 
-TYPE_TEXT = "text/plain"
-TYPE_HTML = "text/html"
-TYPE_CALENDAR = "text/calendar"
+TYPE_TEXT = "plain"
+TYPE_HTML = "html"
+TYPE_CALENDAR = "calendar"
 
 class HandlerValue(HandlerBase):
     """
@@ -759,7 +760,7 @@ def read_email(path_email, disable_splitting):
 
     :type path_email: str
     :type disable_splitting: bool
-    :rtype: email.message.Message
+    :rtype: EmailMessage
     """
     header_factory = HeaderRegistry(base_class=BaseHeaderCustom)
     header_factory.map_to_type("message-id", MessageIDHeaderCustom)
@@ -779,7 +780,7 @@ def write_email(email, path_email, reformat_header):
     """
     Write email to file.
 
-    :type email: email.message.Message
+    :type email: EmailMessage
     :type path_email: str
     :type reformat_header: bool
     """
@@ -1023,27 +1024,41 @@ def url2regex(url):
     else:
         return fr"^{protocol}{escape(url).replace(r"\*", r".*")}$"
 
-def extract_part(email, content_type):
+def extract_part(email, content_subtype):
     """
-    Extract part, charset and content for first non-attachment email part matching given content type.
+    Extract part, charset and content for first non-attachment text part matching given content subtype.
 
-    :type email: email.message.Message
-    :type content_type: str
+    :type email: EmailMessage
+    :type content_subtype: str
     :rtype: tuple or None
     """
+    content_type = f"text/{content_subtype}"
+
     for part in email.walk():
         if part.get_content_type() == content_type and not part.is_attachment():
-            charset = python_charset(part.get_content_charset())
+            try:
+                content = part.get_payload(decode=True)
+            except Exception:
+                raise Exception(f"Cannot extract '{content_type}' body from message")
+
+            if not content:
+                return(part, CHARSET_UTF8, "")
+
+            charset = part.get_content_charset()
+
+            html = (content_subtype == TYPE_HTML)
 
             if charset is None:
-                charset = CHARSET_UTF8
+                unicode = UnicodeDammit(text, is_html=html)
+            else:
+                unicode = UnicodeDammit(text, [ charset, ], is_html=html)
 
-            try:
-                content = part.get_payload(decode=True).decode(charset, errors="ignore").replace("\r", "")
-            except Exception:
-                raise Exception(f"Cannot decode '{content_type}' part with charset '{charset}'")
+            content = unicode.unicode_markup
 
-            return (part, charset, content)
+            if content is None:
+                raise Exception(f"Cannot decode '{content_type}' body")
+
+            return (part, python_charset(unicode.original_encoding), content)
 
     return None
 
