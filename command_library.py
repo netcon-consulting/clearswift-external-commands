@@ -1,4 +1,4 @@
-# command_library.py V12.0.0
+# command_library.py V12.0.1
 #
 # Copyright (c) 2020-2024 NetCon Unternehmensberatung GmbH, https://www.netcon-consulting.com
 # Author: Marc Dierksen (m.dierksen@netcon-consulting.com)
@@ -869,12 +869,20 @@ def end_escape(string):
 
 def extract_text(html):
     """
-    Extract text from html.
+    Extract text from HTML.
 
     :type html: str
     :rtype: str
     """
-    return "\n".join(etree.fromstring(html.encode(), parser=etree.HTMLParser()).xpath("//text()"))
+    list_text = list()
+
+    for line in etree.fromstring(html.encode(), parser=etree.HTMLParser(encoding=CHARSET_UTF8)).xpath("//text()"):
+        line = line.strip()
+
+        if line:
+            list_text.append(line)
+
+    return "\n".join(list_text)
 
 def string_ascii(string):
     """
